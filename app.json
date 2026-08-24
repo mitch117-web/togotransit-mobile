@@ -2,11 +2,16 @@
   "expo": {
     "name": "togotransit_mobile",
     "slug": "togotransit_mobile",
+    "scheme": "togotransit",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "plugins": [
+      "expo-router",
+      "expo-barcode-scanner",
+      "@react-native-community/datetimepicker"
+    ],
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -23,7 +28,8 @@
       "edgeToEdgeEnabled": true
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
     }
   }
 }

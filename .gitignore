@@ -5,9 +5,15 @@ node_modules/
 
 # Expo
 .expo/
+.expo_cache/
+.expo_home/
 dist/
 web-build/
 expo-env.d.ts
+
+# Home profiles / browser data (jamais versionner)
+home/
+profiles/
 
 # Native
 .kotlin/
@@ -31,7 +37,15 @@ yarn-error.*
 *.pem
 
 # local env files
-.env*.local
+.env
+.env.local
+.env.*.local
+.env.*.production
+
+# databases
+*.db
+*.sqlite
+*.sqlite3
 
 # typescript
 *.tsbuildinfo
