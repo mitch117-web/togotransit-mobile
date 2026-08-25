@@ -77,6 +77,7 @@ export default function ParcelDetailsScreen() {
 
   const getStatusInfo = (status: string) => {
     switch (status) {
+      case 'CREATED': return { label: 'Créé', color: colors.outline, bg: colors.surfaceContainerHigh };
       case 'PENDING': return { label: 'En attente', color: colors.secondary, bg: colors.secondaryContainer };
       case 'IN_AGENCY': return { label: 'En agence', color: colors.primary, bg: colors.primaryContainer };
       case 'IN_TRANSIT': return { label: 'En transit', color: '#006adc', bg: '#d1e4ff' };
@@ -180,12 +181,13 @@ export default function ParcelDetailsScreen() {
         </View>
 
         {/* Map Visualization (Simulated Live Tracking) */}
+        {parcel.status !== 'DELIVERED' && (
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
             <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Localisation en direct</Text>
             <View style={[styles.liveBadge, { backgroundColor: colors.success + '20' }]}>
               <View style={[styles.liveDot, { backgroundColor: colors.success }]} />
-              <Text style={[styles.liveText, { color: colors.success }]}>LIVE</Text>
+              <Text style={[styles.liveText, { color: colors.success }]}>{liveLocation ? 'LIVE' : 'EST.'}</Text>
             </View>
           </View>
           <View style={[styles.mapContainer, { backgroundColor: colors.surfaceContainerHigh, borderColor: colors.outlineVariant + '40' }]}>
@@ -231,6 +233,7 @@ export default function ParcelDetailsScreen() {
             </View>
           </View>
         </View>
+        )}
 
         {/* Proof of Delivery (POD) */}
         {parcel.status === 'DELIVERED' && parcel.pod && (

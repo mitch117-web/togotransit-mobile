@@ -39,6 +39,7 @@ export default function LiveTrackingScreen() {
   const [tracking, setTracking] = useState(false);
   const [parcel, setParcel] = useState<any>(null);
   const [driverLocation, setDriverLocation] = useState<any>(null);
+  const [hasRealLocation, setHasRealLocation] = useState(false);
   const [region, setRegion] = useState<any>({
     latitude: 6.1725,
     longitude: 1.2314,
@@ -46,8 +47,10 @@ export default function LiveTrackingScreen() {
     longitudeDelta: 0.0421,
   });
   const [eta, setEta] = useState('25 min');
+  const watchSubscription = React.useRef<any>(null);
 
-  // Sample route coordinates (Togo)
+  // Route de secours (démo) utilisée uniquement tant qu'aucune position GPS
+  // réelle n'a encore été reçue du chauffeur.
   const routeCoordinates = [
     { latitude: 6.1725, longitude: 1.2314 }, // Lomé
     { latitude: 6.1525, longitude: 1.2514 },
@@ -56,44 +59,55 @@ export default function LiveTrackingScreen() {
     { latitude: 6.0925, longitude: 1.3114 },
   ];
 
+  const isAssignedDriver = !!(user?.id && parcel?.driverId && user.id === parcel.driverId);
+
   useEffect(() => {
-    if (parcelId) {
-      fetchParcel();
-    }
-    simulateDriverMovement();
-  }, [parcelId]);
+    if (!parcelId) return;
+    fetchParcel();
+    const poll = setInterval(fetchParcel, 5000);
+    let simIndex = 0;
+    const sim = setInterval(() => {
+      if (hasRealLocation) return;
+      const newLocation = routeCoordinates[simIndex % routeCoordinates.length];
+      setDriverLocation(newLocation);
+      setRegion({ ...newLocation, latitudeDelta: 0.01, longitudeDelta: 0.01 });
+      simIndex++;
+    }, 3000);
+    return () => {
+      clearInterval(poll);
+      clearInterval(sim);
+    };
+  }, [parcelId, hasRealLocation]);
+
+  useEffect(() => {
+    return () => {
+      watchSubscription.current?.remove?.();
+    };
+  }, []);
 
   const fetchParcel = async () => {
     try {
-      setLoading(true);
       const response = await api.get(`/parcels/${parcelId}`);
-      setParcel(response.data);
+      const found = response.data;
+      setParcel(found);
+
+      try {
+        const history = JSON.parse(found?.statusHistory || '[]');
+        const lastGps = [...history].reverse().find((entry: any) => entry?.metadata?.latitude);
+        if (lastGps) {
+          const loc = { latitude: lastGps.metadata.latitude, longitude: lastGps.metadata.longitude };
+          setDriverLocation(loc);
+          setRegion({ ...loc, latitudeDelta: 0.01, longitudeDelta: 0.01 });
+          setHasRealLocation(true);
+        }
+      } catch (_) {
+        // historique invalide, on garde la position précédente
+      }
     } catch (error) {
       console.error('Failed to fetch parcel', error);
-      Alert.alert('Erreur', 'Impossible de charger les informations du colis.');
     } finally {
       setLoading(false);
     }
-  };
-
-  const simulateDriverMovement = () => {
-    let index = 0;
-    const interval = setInterval(() => {
-      if (index < routeCoordinates.length) {
-        const newLocation = routeCoordinates[index];
-        setDriverLocation(newLocation);
-        setRegion({
-          ...newLocation,
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01,
-        });
-        index++;
-      } else {
-        index = 0;
-      }
-    }, 3000);
-
-    return () => clearInterval(interval);
   };
 
   const startTracking = async () => {
@@ -103,6 +117,23 @@ export default function LiveTrackingScreen() {
       return;
     }
     setTracking(true);
+    watchSubscription.current = await Location.watchPositionAsync(
+      { accuracy: Location.Accuracy.High, timeInterval: 8000, distanceInterval: 20 },
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          await api.post(`/parcels/${parcelId}/location`, { latitude, longitude });
+        } catch (error) {
+          console.error('Failed to push location', error);
+        }
+      }
+    );
+  };
+
+  const stopTracking = () => {
+    watchSubscription.current?.remove?.();
+    watchSubscription.current = null;
+    setTracking(false);
   };
 
   if (loading) {
@@ -134,8 +165,8 @@ export default function LiveTrackingScreen() {
             <MapView
               style={styles.map}
               region={region}
-              showsUserLocation={user?.role !== 'CLIENT'}
-              showsMyLocationButton={user?.role !== 'CLIENT'}
+              showsUserLocation={isAssignedDriver}
+              showsMyLocationButton={isAssignedDriver}
             >
               {driverLocation && (
                 <Marker
@@ -234,7 +265,7 @@ export default function LiveTrackingScreen() {
               </View>
             </View>
 
-            {user?.role === 'DRIVER' && !tracking && (
+            {isAssignedDriver && !tracking && (
               <TouchableOpacity
                 style={[styles.actionButton, { backgroundColor: colors.primary }]}
                 onPress={startTracking}
@@ -246,11 +277,23 @@ export default function LiveTrackingScreen() {
               </TouchableOpacity>
             )}
 
-            {tracking && (
+            {isAssignedDriver && tracking && (
+              <TouchableOpacity
+                style={[styles.trackingActive, { backgroundColor: colors.success + '20', borderColor: colors.success }]}
+                onPress={stopTracking}
+              >
+                <View style={styles.pulseDot} />
+                <Text style={[styles.trackingText, { color: colors.success }]}>
+                  Position partagée en direct — Arrêter
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {!isAssignedDriver && hasRealLocation && (
               <View style={[styles.trackingActive, { backgroundColor: colors.success + '20', borderColor: colors.success }]}>
                 <View style={styles.pulseDot} />
                 <Text style={[styles.trackingText, { color: colors.success }]}>
-                  Position partagée en direct
+                  Position du chauffeur en direct
                 </Text>
               </View>
             )}
