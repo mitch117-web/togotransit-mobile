@@ -44,10 +44,12 @@ export default function SendParcelScreen() {
       allowsEditing: true,
       aspect: [4, 3],
       quality: 0.5,
+      base64: true,
     });
 
     if (!result.canceled) {
-      setParcelPhoto(result.assets[0].uri);
+      const asset = result.assets[0];
+      setParcelPhoto(asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri);
     }
   };
 
