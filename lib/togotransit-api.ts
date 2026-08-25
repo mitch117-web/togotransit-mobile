@@ -333,7 +333,7 @@ export const reservations = {
 };
 
 export const paiements = {
-  async initier(input: { reservation_id: number; methode: 'flooz' | 'tmoney' | 'carte' | 'autre' }): Promise<PaiementInitResult> {
+  async initier(input: { reservation_id: number; methode: 'flooz' | 'tmoney' | 'carte' | 'autre'; numero_telephone: string }): Promise<PaiementInitResult> {
     const { data } = await api.post('/paiements/initier', input);
     return data;
   },

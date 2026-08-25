@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
+  TextInput,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
@@ -12,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../lib/theme';
+import { useAuth } from '../lib/auth';
 import { paiements, PaiementInitResult, PaiementStatutResult } from '../lib/togotransit-api';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
@@ -44,6 +46,7 @@ export default function PaymentScreen() {
   const params = useLocalSearchParams<{ reservation_id?: string }>();
   const router = useRouter();
   const { colors } = useTheme();
+  const { user } = useAuth();
 
   const reservationId = params.reservation_id ? parseInt(params.reservation_id, 10) : NaN;
 
@@ -52,6 +55,7 @@ export default function PaymentScreen() {
   const [statut, setStatut] = useState<PaiementStatutResult | null>(null);
 
   const [methodeChoisie, setMethodeChoisie] = useState<Methode>('flooz');
+  const [numeroTelephone, setNumeroTelephone] = useState((user?.phone || user?.telephone || '').replace(/^\+?228/, ''));
   const [initResult, setInitResult] = useState<PaiementInitResult | null>(null);
   const [initLoading, setInitLoading] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
@@ -102,12 +106,18 @@ export default function PaymentScreen() {
 
   const initierPaiement = async () => {
     if (isNaN(reservationId)) return;
+    const telephone = numeroTelephone.replace(/\s+/g, '');
+    if (telephone.length < 8) {
+      Alert.alert('Numéro requis', 'Entrez le numéro Mobile Money à débiter (ex: 90123456).');
+      return;
+    }
     setInitLoading(true);
     setError(null);
     try {
       const res = await paiements.initier({
         reservation_id: reservationId,
         methode: methodeChoisie,
+        numero_telephone: telephone,
       });
       setInitResult(res);
       setShowInstructions(true);
@@ -140,7 +150,7 @@ export default function PaymentScreen() {
   const paiement = statut?.paiement;
   const statutFinal =
     statut?.reservation.statut === 'confirmee' ? 'confirmee'
-    : paiement && 'statut' in paiement ? (paiement.statut === 'reussi' ? 'reussi'
+    : paiement && 'id' in paiement ? (paiement.statut === 'reussi' ? 'reussi'
       : paiement.statut === 'echoue' ? 'echoue' : 'en_attente')
     : 'aucun';
 
@@ -304,6 +314,18 @@ export default function PaymentScreen() {
                     {methodeChoisie === 'tmoney' ? <CheckCircle2 size={14} color={colors.onPrimary} /> : null}
                   </View>
                 </TouchableOpacity>
+
+                <Text style={[styles.phoneLabel, { color: colors.textSecondary }]}>
+                  Numéro Mobile Money à débiter
+                </Text>
+                <TextInput
+                  value={numeroTelephone}
+                  onChangeText={setNumeroTelephone}
+                  placeholder="Ex: 90123456"
+                  placeholderTextColor={colors.textSecondary}
+                  keyboardType="phone-pad"
+                  style={[styles.phoneInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface }]}
+                />
               </View>
             )}
 
@@ -565,6 +587,15 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  phoneLabel: { fontSize: 12, fontWeight: '700', marginTop: 6 },
+  phoneInput: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    fontWeight: '700',
   },
 
   ctaBtn: {
