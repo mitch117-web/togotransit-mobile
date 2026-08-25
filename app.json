@@ -10,7 +10,25 @@
     "plugins": [
       "expo-router",
       "expo-barcode-scanner",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "TogoTransit utilise l'appareil photo pour scanner les billets/colis et prendre des preuves de livraison."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "TogoTransit accède à vos photos pour joindre une image lors de l'envoi d'un colis."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "TogoTransit utilise votre position pour le suivi en temps réel des trajets et livraisons."
+        }
+      ]
     ],
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -18,14 +36,26 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "tg.togotransit.mobile",
+      "infoPlist": {
+        "NSCameraUsageDescription": "TogoTransit utilise l'appareil photo pour scanner les billets/colis et prendre des preuves de livraison.",
+        "NSPhotoLibraryUsageDescription": "TogoTransit accède à vos photos pour joindre une image lors de l'envoi d'un colis.",
+        "NSLocationWhenInUseUsageDescription": "TogoTransit utilise votre position pour le suivi en temps réel des trajets et livraisons."
+      }
     },
     "android": {
+      "package": "tg.togotransit.mobile",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
