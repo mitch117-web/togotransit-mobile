@@ -3,22 +3,29 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Backend de production — utilisé dès qu'aucun serveur local de dev n'est détecté.
+const PRODUCTION_API_URL = 'https://togotransit-antg.vercel.app/api';
+
 const getDefaultApiUrl = (): string => {
   if (process.env.EXPO_PUBLIC_API_URL) {
     return process.env.EXPO_PUBLIC_API_URL;
   }
-  // Auto-detect host IP from Expo bundler (works with Expo Go on real devices)
-  const hostUri = Constants.expoConfig?.hostUri || (Constants as any).manifest?.debuggerHost;
-  if (hostUri) {
-    const ip = hostUri.split(':')[0];
-    if (ip && ip !== 'localhost' && ip !== '127.0.0.1') {
-      return `http://${ip}:3000/api`;
+  // En dev local via Expo Go : si un serveur `next dev` tourne sur la machine
+  // de dev, on le cible via son IP LAN plutôt que la prod.
+  if (__DEV__) {
+    const hostUri = Constants.expoConfig?.hostUri || (Constants as any).manifest?.debuggerHost;
+    if (hostUri) {
+      const ip = hostUri.split(':')[0];
+      if (ip && ip !== 'localhost' && ip !== '127.0.0.1') {
+        return `http://${ip}:3000/api`;
+      }
     }
+    if (Platform.OS === 'android') {
+      return 'http://10.0.2.2:3000/api';
+    }
+    return 'http://localhost:3000/api';
   }
-  if (Platform.OS === 'android') {
-    return 'http://10.0.2.2:3000/api';
-  }
-  return 'http://localhost:3000/api';
+  return PRODUCTION_API_URL;
 };
 
 export const API_BASE_URL = getDefaultApiUrl();
