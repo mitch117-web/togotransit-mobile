@@ -42,21 +42,25 @@ const formatPrix = (n: number) => {
 };
 
 export default function ReservationScreen() {
-  const params = useLocalSearchParams<{ id?: string }>();
+  const params = useLocalSearchParams<{ id?: string; places?: string }>();
   const router = useRouter();
   const { colors } = useTheme();
   const { user } = useAuth();
 
   const trajetId = params.id ? parseInt(params.id, 10) : NaN;
+  const initialPlaces = Math.max(1, parseInt(params.places || '1', 10) || 1);
 
   const [loading, setLoading] = useState(!isNaN(trajetId));
   const [error, setError] = useState<any>(null);
   const [trajet, setTrajet] = useState<TrajetDetail | null>(null);
 
-  const [nombrePlaces, setNombrePlaces] = useState(1);
-  const [passagers, setPassagers] = useState<PassagerInput[]>([
-    { nom_complet: user?.name || '', telephone: user?.phone || '' },
-  ]);
+  const [nombrePlaces, setNombrePlaces] = useState(initialPlaces);
+  const [passagers, setPassagers] = useState<PassagerInput[]>(
+    Array.from({ length: initialPlaces }, (_, i) => ({
+      nom_complet: i === 0 ? user?.name || '' : '',
+      telephone: i === 0 ? user?.phone || '' : '',
+    }))
+  );
 
   const [submitting, setSubmitting] = useState(false);
 

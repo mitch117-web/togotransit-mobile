@@ -173,8 +173,8 @@ export default function TrajetDetailScreen() {
     router.push({
       pathname: '/reservation',
       params: {
-        trajet_id: String(trajetId),
-        nb_places: String(nbPlaces),
+        id: String(trajetId),
+        places: String(nbPlaces),
       },
     });
   };
