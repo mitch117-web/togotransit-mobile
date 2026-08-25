@@ -143,8 +143,8 @@ export interface PaiementInitResult {
     montant: number;
     statut: string;
     provider_label: string;
-    instructions?: { etapes: string[]; delai_confirmation: string } | null;
-    mock_webhook_url_reference: string;
+    instructions?: string[] | null;
+    mock_webhook_url_reference?: string;
   };
   date_expiration_attente: string;
 }

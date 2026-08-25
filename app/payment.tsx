@@ -468,21 +468,15 @@ export default function PaymentScreen() {
                   </View>
                 </View>
 
-                {initResult.paiement.instructions ? (
+                {initResult.paiement.instructions && initResult.paiement.instructions.length > 0 ? (
                   <View>
                     <Text style={[styles.etapesTitle, { color: colors.text }]}>Étapes</Text>
-                    {initResult.paiement.instructions.etapes.map((etape, i) => (
+                    {initResult.paiement.instructions.map((etape, i) => (
                       <View key={i} style={styles.etapeRow}>
                         <Text style={[styles.etapeNum, { color: colors.primary }]}>{i + 1}.</Text>
                         <Text style={[styles.etapeText, { color: colors.text }]}>{etape}</Text>
                       </View>
                     ))}
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 }}>
-                      <Clock size={14} color={colors.textSecondary} />
-                      <Text style={[styles.delai, { color: colors.textSecondary }]}>
-                        Délai de confirmation : {initResult.paiement.instructions.delai_confirmation}
-                      </Text>
-                    </View>
                   </View>
                 ) : null}
               </>
