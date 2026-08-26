@@ -12,6 +12,7 @@ import {
   Modal
 } from 'react-native'
 import { useTheme } from '../lib/theme'
+import { useAuth } from '../lib/auth'
 import api from '../lib/api'
 
 interface Message {
@@ -22,12 +23,18 @@ interface Message {
 }
 
 export default function AIChatbot() {
+  const { user } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const scrollViewRef = useRef<ScrollView>(null)
   const { colors, isDark, toggleTheme } = useTheme()
+
+  // Assistant réservé aux comptes voyageur — jamais pour gestionnaire/super_admin.
+  if (user && user.role !== 'voyageur') {
+    return null
+  }
 
   const scrollToBottom = () => {
     setTimeout(() => {
