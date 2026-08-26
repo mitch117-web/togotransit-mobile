@@ -27,6 +27,13 @@
         {
           "locationWhenInUsePermission": "TogoTransit utilise votre position pour le suivi en temps réel des trajets et livraisons."
         }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "TogoTransit enregistre vos billets et preuves de livraison dans vos photos.",
+          "savePhotosPermission": "TogoTransit enregistre vos billets et preuves de livraison dans vos photos."
+        }
       ]
     ],
     "splash": {
@@ -40,7 +47,8 @@
       "infoPlist": {
         "NSCameraUsageDescription": "TogoTransit utilise l'appareil photo pour scanner les billets/colis et prendre des preuves de livraison.",
         "NSPhotoLibraryUsageDescription": "TogoTransit accède à vos photos pour joindre une image lors de l'envoi d'un colis.",
-        "NSLocationWhenInUseUsageDescription": "TogoTransit utilise votre position pour le suivi en temps réel des trajets et livraisons."
+        "NSLocationWhenInUseUsageDescription": "TogoTransit utilise votre position pour le suivi en temps réel des trajets et livraisons.",
+        "NSPhotoLibraryAddUsageDescription": "TogoTransit enregistre vos billets et preuves de livraison dans vos photos."
       }
     },
     "android": {

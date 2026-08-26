@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,11 +6,13 @@ import {
   TouchableOpacity,
   StyleSheet,
   Share,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../lib/theme';
 import { billets, BilletDetail } from '../lib/togotransit-api';
+import { showAlert } from '../lib/alert';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 import {
@@ -25,6 +27,9 @@ import {
   Phone,
 } from 'lucide-react-native';
 import QRCode from 'react-native-qrcode-svg';
+import { captureRef } from 'react-native-view-shot';
+import * as MediaLibrary from 'expo-media-library';
+import * as Sharing from 'expo-sharing';
 
 const formatDateBillet = (iso?: string) => {
   if (!iso) return '';
@@ -82,8 +87,27 @@ export default function TicketScreen() {
     loadBillet();
   }, [loadBillet]);
 
-  const partager = async () => {
+  const ticketRef = useRef<View>(null);
+  const [processing, setProcessing] = useState<'share' | 'download' | null>(null);
+
+  const captureTicketImage = async (): Promise<string | null> => {
+    if (!ticketRef.current || Platform.OS === 'web') return null;
     try {
+      return await captureRef(ticketRef, { format: 'png', quality: 1 });
+    } catch (_) {
+      return null;
+    }
+  };
+
+  const partager = async () => {
+    if (processing) return;
+    setProcessing('share');
+    try {
+      const uri = await captureTicketImage();
+      if (uri && (await Sharing.isAvailableAsync())) {
+        await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Mon billet TogoTransit' });
+        return;
+      }
       const trajet = billet?.reservation?.trajet;
       await Share.share({
         title: 'Mon billet TogoTransit',
@@ -92,7 +116,36 @@ export default function TicketScreen() {
           : 'Mon billet TogoTransit',
       });
     } catch (_) {
-      // ignore
+      showAlert('Erreur', "Impossible de partager le billet pour l'instant.");
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const telecharger = async () => {
+    if (processing) return;
+    if (Platform.OS === 'web') {
+      showAlert('Indisponible sur web', 'Le téléchargement du billet est disponible sur l\'application mobile.');
+      return;
+    }
+    setProcessing('download');
+    try {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') {
+        showAlert('Permission requise', "Autorisez l'accès à vos photos pour enregistrer le billet.");
+        return;
+      }
+      const uri = await captureTicketImage();
+      if (!uri) {
+        showAlert('Erreur', "Impossible de générer l'image du billet.");
+        return;
+      }
+      await MediaLibrary.saveToLibraryAsync(uri);
+      showAlert('Billet téléchargé', 'Le billet a été enregistré dans vos photos.');
+    } catch (_) {
+      showAlert('Erreur', "Impossible de télécharger le billet pour l'instant.");
+    } finally {
+      setProcessing(null);
     }
   };
 
@@ -160,7 +213,11 @@ export default function TicketScreen() {
           </View>
         ) : (
           <View style={styles.content}>
-            <View style={[styles.billetCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.border }]}>
+            <View
+              ref={ticketRef}
+              collapsable={false}
+              style={[styles.billetCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.border }]}
+            >
               <View style={styles.billetHeader}>
                 <View style={[styles.compagnieWrap, { backgroundColor: colors.primaryContainer }]}>
                   <Bus size={22} color={colors.onPrimaryContainer} />
@@ -270,19 +327,25 @@ export default function TicketScreen() {
             <View style={styles.btnRow}>
               <TouchableOpacity
                 onPress={partager}
-                style={[styles.btnSecondary, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                disabled={processing !== null}
+                style={[styles.btnSecondary, { backgroundColor: colors.surface, borderColor: colors.border, opacity: processing === 'download' ? 0.5 : 1 }]}
                 activeOpacity={0.75}
               >
                 <Share2 size={18} color={colors.text} />
-                <Text style={[styles.btnText, { color: colors.text }]}>Partager</Text>
+                <Text style={[styles.btnText, { color: colors.text }]}>
+                  {processing === 'share' ? 'Partage…' : 'Partager'}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={partager}
-                style={[styles.btnSecondary, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                onPress={telecharger}
+                disabled={processing !== null}
+                style={[styles.btnSecondary, { backgroundColor: colors.surface, borderColor: colors.border, opacity: processing === 'share' ? 0.5 : 1 }]}
                 activeOpacity={0.75}
               >
                 <Download size={18} color={colors.text} />
-                <Text style={[styles.btnText, { color: colors.text }]}>Télécharger</Text>
+                <Text style={[styles.btnText, { color: colors.text }]}>
+                  {processing === 'download' ? 'Téléchargement…' : 'Télécharger'}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
