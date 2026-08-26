@@ -1,11 +1,11 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, ViewStyle } from 'react-native';
+import { Animated, StyleProp, ViewStyle } from 'react-native';
 
 interface FadeInStaggerProps {
   children: React.ReactNode;
   index?: number;
   delayStep?: number;
-  style?: ViewStyle | ViewStyle[];
+  style?: StyleProp<ViewStyle>;
   distance?: number;
 }
 

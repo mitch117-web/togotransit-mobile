@@ -31,6 +31,7 @@ import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 import EmptyState from '../components/EmptyState';
 import TrajetCard, { Trajet } from '../components/TrajetCard';
+import FadeInStagger from '../components/ui/FadeInStagger';
 import { trajets, TrajetResult } from '../lib/togotransit-api';
 
 type SortKey = 'heure_depart' | 'prix' | 'duree';
@@ -301,12 +302,13 @@ export default function SearchResultsScreen() {
             )
           ) : (
             <>
-              {resultsAffiches.map((t) => (
-                <TrajetCard
-                  key={t.id}
-                  trajet={t as unknown as Trajet}
-                  onPress={() => openTrajet(t)}
-                />
+              {resultsAffiches.map((t, i) => (
+                <FadeInStagger key={t.id} index={i}>
+                  <TrajetCard
+                    trajet={t as unknown as Trajet}
+                    onPress={() => openTrajet(t)}
+                  />
+                </FadeInStagger>
               ))}
               <View style={{ alignItems: 'center', marginTop: 18 }}>
                 <Text style={{ color: colors.textSecondary, fontSize: 12, fontWeight: '600' }}>

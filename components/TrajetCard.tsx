@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useTheme } from '../lib/theme';
 import { Clock, MapPin, Bus, ChevronRight, Star, Users as UsersIcon } from 'lucide-react-native';
+import GlassCard from './ui/GlassCard';
 
 export interface Trajet {
   id: number;
@@ -68,12 +69,11 @@ export const TrajetCard: React.FC<Props> = ({ trajet, onPress, compact }) => {
       activeOpacity={0.8}
       onPress={onPress}
       disabled={isSoldOut || !onPress}
-      style={[
-        styles.card,
-        { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.border },
-        compact && styles.cardCompact,
-        isSoldOut && { opacity: 0.65 },
-      ]}
+      style={[isSoldOut && { opacity: 0.65 }]}
+    >
+    <GlassCard
+      style={[styles.card, compact && styles.cardCompact]}
+      borderRadius={compact ? 16 : 20}
     >
       <View style={styles.header}>
         <View style={[styles.compagnieRow]}>
@@ -188,6 +188,7 @@ export const TrajetCard: React.FC<Props> = ({ trajet, onPress, compact }) => {
           </View>
         </View>
       ) : null}
+    </GlassCard>
     </TouchableOpacity>
   );
 };
@@ -196,7 +197,6 @@ const styles = StyleSheet.create({
   card: {
     marginHorizontal: 16,
     marginVertical: 8,
-    borderWidth: 1,
     borderRadius: 20,
     padding: 14,
     gap: 12,
