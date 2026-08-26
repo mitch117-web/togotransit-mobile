@@ -170,13 +170,7 @@ export default function TrajetDetailScreen() {
 
   const goReservation = () => {
     if (!canGoReserve || !trajetId) return;
-    router.push({
-      pathname: '/reservation',
-      params: {
-        id: String(trajetId),
-        places: String(nbPlaces),
-      },
-    });
+    router.push(`/reservation?id=${trajetId}&places=${nbPlaces}`);
   };
 
   return (

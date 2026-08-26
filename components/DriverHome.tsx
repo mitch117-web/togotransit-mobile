@@ -167,7 +167,7 @@ export default function DriverHome({ prenom, compagnieNom, trajets, parcels, ref
                   {p.status === 'IN_TRANSIT' && (
                     <TouchableOpacity
                       style={[styles.secondaryBtn, { backgroundColor: colors.surfaceContainerHigh }]}
-                      onPress={() => router.push({ pathname: '/live-tracking', params: { parcelId: String(p.id) } })}
+                      onPress={() => router.push(`/live-tracking?parcelId=${p.id}`)}
                     >
                       <Navigation size={16} color={colors.primary} />
                       <Text style={[styles.secondaryBtnText, { color: colors.primary }]}>Position</Text>
@@ -175,17 +175,15 @@ export default function DriverHome({ prenom, compagnieNom, trajets, parcels, ref
                   )}
                   <TouchableOpacity
                     style={[styles.primaryBtn, { backgroundColor: colors.primary }]}
-                    onPress={() =>
-                      router.push({
-                        pathname: '/delivery-confirmation',
-                        params: {
-                          parcelId: String(p.id),
-                          trackingId: p.trackingId,
-                          destination: p.destination,
-                          receiverName: p.receiverName,
-                        },
-                      })
-                    }
+                    onPress={() => {
+                      const qp = new URLSearchParams({
+                        parcelId: String(p.id),
+                        trackingId: p.trackingId ?? '',
+                        destination: p.destination ?? '',
+                        receiverName: p.receiverName ?? '',
+                      });
+                      router.push(`/delivery-confirmation?${qp.toString()}`);
+                    }}
                   >
                     <Text style={[styles.primaryBtnText, { color: colors.onPrimary }]}>Confirmer la livraison</Text>
                     <ChevronRight size={16} color={colors.onPrimary} />

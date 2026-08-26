@@ -142,10 +142,7 @@ export default function ReservationScreen() {
         passagers,
       });
       if (res.success) {
-        router.replace({
-          pathname: '/payment',
-          params: { reservation_id: String(res.reservation.id) },
-        });
+        router.replace(`/payment?reservation_id=${res.reservation.id}`);
       }
     } catch (e: any) {
       const msg = e?.message || e?.data?.error || 'Erreur lors de la réservation.';

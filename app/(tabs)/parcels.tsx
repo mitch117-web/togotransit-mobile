@@ -45,20 +45,15 @@ export default function ParcelsScreen() {
 
   const handleAction = (item: any) => {
     if (isMyDelivery(item)) {
-      router.push({
-        pathname: '/delivery-confirmation',
-        params: {
-          parcelId: item.id,
-          trackingId: item.trackingId,
-          destination: item.destination,
-          receiverName: item.receiverName
-        }
+      const qp = new URLSearchParams({
+        parcelId: String(item.id),
+        trackingId: item.trackingId ?? '',
+        destination: item.destination ?? '',
+        receiverName: item.receiverName ?? '',
       });
+      router.push(`/delivery-confirmation?${qp.toString()}`);
     } else {
-      router.push({
-        pathname: '/parcel-details',
-        params: { parcelId: item.id }
-      });
+      router.push(`/parcel-details?parcelId=${item.id}`);
     }
   };
 
@@ -163,7 +158,7 @@ export default function ParcelsScreen() {
               {item.status === 'IN_TRANSIT' && (
                 <TouchableOpacity
                   style={[styles.trackButton, { backgroundColor: colors.surfaceContainerHigh, marginTop: 0, marginBottom: 10 }]}
-                  onPress={() => router.push({ pathname: '/live-tracking', params: { parcelId: item.id } })}
+                  onPress={() => router.push(`/live-tracking?parcelId=${item.id}`)}
                 >
                   <Navigation size={18} color={colors.primary} />
                   <Text style={[styles.trackButtonText, { color: colors.primary }]}>Partager ma position</Text>
@@ -230,7 +225,7 @@ export default function ParcelsScreen() {
         {item.status === 'IN_TRANSIT' && (
           <TouchableOpacity
             style={[styles.trackButton, { backgroundColor: colors.primary }]}
-            onPress={() => router.push({ pathname: '/live-tracking', params: { parcelId: item.id } })}
+            onPress={() => router.push(`/live-tracking?parcelId=${item.id}`)}
           >
             <Navigation size={18} color="white" />
             <Text style={[styles.trackButtonText, { color: 'white' }]}>

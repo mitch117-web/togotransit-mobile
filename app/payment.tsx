@@ -72,10 +72,7 @@ export default function PaymentScreen() {
       setStatut(s);
       if (s.reservation.statut === 'confirmee' && s.billets_disponibles.length > 0) {
         if (pollRef.current) clearInterval(pollRef.current);
-        router.replace({
-          pathname: '/ticket',
-          params: { billet_id: String(s.billets_disponibles[0].id) },
-        });
+        router.replace(`/ticket?billet_id=${s.billets_disponibles[0].id}`);
       }
     } catch (e: any) {
       setError(e);
@@ -333,10 +330,7 @@ export default function PaymentScreen() {
               <View style={{ marginHorizontal: 16, marginTop: 14 }}>
                 <TouchableOpacity
                   onPress={() =>
-                    router.replace({
-                      pathname: '/ticket',
-                      params: { billet_id: String(statut.billets_disponibles[0].id) },
-                    })
+                    router.replace(`/ticket?billet_id=${statut.billets_disponibles[0].id}`)
                   }
                   activeOpacity={0.85}
                   style={[styles.billetBtn, { backgroundColor: colors.primary }]}

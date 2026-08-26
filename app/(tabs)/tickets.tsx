@@ -367,7 +367,7 @@ export default function TicketsScreen() {
                   {item.statut === 'en_attente' ? (
                     <TouchableOpacity
                       style={[styles.payButton, { backgroundColor: colors.primary }]}
-                      onPress={() => router.push({ pathname: '/payment', params: { reservation_id: String(item.id) } })}
+                      onPress={() => router.push(`/payment?reservation_id=${item.id}`)}
                     >
                       <Text style={[styles.payButtonText, { color: colors.onPrimary }]}>Continuer le paiement</Text>
                       <ChevronRight size={18} color={colors.onPrimary} />
@@ -377,7 +377,7 @@ export default function TicketsScreen() {
                       <TouchableOpacity
                         key={billet.id}
                         style={[styles.billetButton, { backgroundColor: colors.surfaceContainerLow, borderColor: colors.outlineVariant }]}
-                        onPress={() => router.push({ pathname: '/ticket', params: { billet_id: String(billet.id) } })}
+                        onPress={() => router.push(`/ticket?billet_id=${billet.id}`)}
                       >
                         <Text style={[styles.billetButtonText, { color: colors.text }]}>N° {billet.numero_billet}</Text>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
