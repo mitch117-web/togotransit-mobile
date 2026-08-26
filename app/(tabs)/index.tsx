@@ -31,7 +31,9 @@ import {
 import LoadingState from '../../components/LoadingState';
 import ErrorState from '../../components/ErrorState';
 import TrajetCard, { Trajet } from '../../components/TrajetCard';
-import { villes, trajets, Ville, TrajetResult } from '../../lib/togotransit-api';
+import DriverHome from '../../components/DriverHome';
+import { villes, trajets, Ville, TrajetResult, MonTrajetConduit } from '../../lib/togotransit-api';
+import api from '../../lib/api';
 
 const formatDate = (d: Date) => {
   try {
@@ -72,6 +74,44 @@ export default function SearchHomeScreen() {
     : user?.name
       ? String(user.name).split(' ')[0]
       : 'Voyageur';
+
+  // "Chauffeur" n'est pas un rôle à part dans ce système : c'est un voyageur
+  // assigné comme conducteur sur un trajet et/ou comme livreur sur un colis.
+  // On ne peut le savoir qu'en interrogeant ces deux assignations.
+  const [checkingDriverMode, setCheckingDriverMode] = useState(true);
+  const [isDriver, setIsDriver] = useState(false);
+  const [driverTrajets, setDriverTrajets] = useState<MonTrajetConduit[]>([]);
+  const [driverParcels, setDriverParcels] = useState<any[]>([]);
+  const [driverRefreshing, setDriverRefreshing] = useState(false);
+
+  const checkDriverMode = React.useCallback(async () => {
+    if (user?.role !== 'voyageur' || !user?.id) {
+      setCheckingDriverMode(false);
+      return;
+    }
+    try {
+      const [trajetsRes, parcelsRes] = await Promise.all([
+        trajets.mesTrajets().catch(() => ({ data: [] as MonTrajetConduit[] })),
+        api.get('/parcels').catch(() => ({ data: [] })),
+      ]);
+      const myTrajets = trajetsRes.data || [];
+      const myParcels = (parcelsRes.data || []).filter(
+        (p: any) => p.driverId != null && String(p.driverId) === String(user.id)
+      );
+      setDriverTrajets(myTrajets);
+      setDriverParcels(myParcels);
+      setIsDriver(myTrajets.length > 0 || myParcels.length > 0);
+    } catch (_) {
+      // en cas d'échec, on retombe simplement sur l'écran voyageur classique
+    } finally {
+      setCheckingDriverMode(false);
+      setDriverRefreshing(false);
+    }
+  }, [user?.role, user?.id]);
+
+  React.useEffect(() => {
+    checkDriverMode();
+  }, [checkDriverMode]);
 
   const onPick = (kind: VillePickerKind) => {
     setPickerKind(kind);
@@ -143,6 +183,30 @@ export default function SearchHomeScreen() {
   }, [loadQuickTrajets]);
 
   const datesRapides = [0, 1, 2, 3].map(n => addDays(today, n));
+
+  if (checkingDriverMode) {
+    return (
+      <SafeAreaView style={[styles.safe, { backgroundColor: colors.background, justifyContent: 'center' }]} edges={['top']}>
+        <LoadingState label="Chargement…" />
+      </SafeAreaView>
+    );
+  }
+
+  if (isDriver) {
+    return (
+      <DriverHome
+        prenom={userNameLabel}
+        compagnieNom={driverTrajets[0]?.compagnie?.nom ?? driverParcels[0]?.compagnie?.nom ?? null}
+        trajets={driverTrajets}
+        parcels={driverParcels}
+        refreshing={driverRefreshing}
+        onRefresh={() => {
+          setDriverRefreshing(true);
+          checkDriverMode();
+        }}
+      />
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>

@@ -102,7 +102,23 @@ export const trajets = {
       data: (data?.data ?? data ?? []) as TrajetResult[],
     };
   },
+  async mesTrajets(): Promise<{ success: boolean; data: MonTrajetConduit[]; total: number }> {
+    const { data } = await api.get('/trajets/mes-trajets');
+    return data;
+  },
 };
+
+export interface MonTrajetConduit {
+  id: number;
+  compagnie: { id: number; nom: string; logo_url?: string | null } | null;
+  vehicule: { type?: string | null; immatriculation?: string; nombre_places?: number } | null;
+  ville_depart: { nom: string };
+  ville_arrivee: { nom: string };
+  date_depart: string;
+  statut: string;
+  places_disponibles: number;
+  passagers_a_bord: number;
+}
 
 export interface PassagerInput {
   nom_complet: string;
