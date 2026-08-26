@@ -20,6 +20,7 @@ export default function ProfileScreen() {
   const { colors, theme, toggleTheme } = useTheme();
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(user?.notifications_enabled ?? true);
   const [stats, setStats] = React.useState({ tickets: 0, parcels: 0, rating: 4.9 });
+  const [isDriver, setIsDriver] = React.useState(false);
 
   React.useEffect(() => {
     setNotificationsEnabled(user?.notifications_enabled ?? true);
@@ -37,11 +38,15 @@ export default function ProfileScreen() {
         api.get('/parcels'),
         api.get('/bookings'),
       ]);
+      const parcels = parcelsRes.data || [];
       setStats({
         tickets: bookingsRes.data?.length || 0,
-        parcels: parcelsRes.data?.length || 0,
+        parcels: parcels.length,
         rating: 4.9,
       });
+      // Être "chauffeur" n'est pas un rôle à part dans ce système — c'est un
+      // voyageur assigné comme livreur sur au moins un colis.
+      setIsDriver(parcels.some((p: any) => String(p.driverId) === String(user?.id)));
     } catch (error) {
       console.error('Failed to fetch profile stats', error);
     }
@@ -119,7 +124,7 @@ export default function ProfileScreen() {
         <View style={[styles.roleBadge, { backgroundColor: colors.surface }]}>
           <View style={[styles.roleDot, { backgroundColor: colors.primary }]} />
           <Text style={[styles.roleText, { color: colors.primary }]}>
-            {ROLE_LABELS[user?.role ?? ''] ?? 'Client'}
+            {isDriver ? 'Chauffeur' : (ROLE_LABELS[user?.role ?? ''] ?? 'Client')}
           </Text>
         </View>
       </View>
