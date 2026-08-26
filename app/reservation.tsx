@@ -18,6 +18,8 @@ import { useAuth } from '../lib/auth';
 import { trajetDetails, reservations, TrajetDetail, PassagerInput } from '../lib/togotransit-api';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
+import GlassCard from '../components/ui/GlassCard';
+import FadeInStagger from '../components/ui/FadeInStagger';
 import {
   ArrowLeft,
   Plus,
@@ -195,7 +197,8 @@ export default function ReservationScreen() {
             </View>
           ) : (
             <>
-              <View style={[styles.recapCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.border }]}>
+              <FadeInStagger index={0}>
+              <GlassCard style={styles.recapCard}>
                 <View style={styles.compagnieRow}>
                   <View style={[styles.compagnieLogo, { backgroundColor: colors.primaryContainer }]}>
                     <Bus size={18} color={colors.onPrimaryContainer} />
@@ -234,9 +237,11 @@ export default function ReservationScreen() {
                   </Text>
                   <Text style={[styles.prix, { color: colors.text }]}>{formatPrix(trajet.prix)}</Text>
                 </View>
-              </View>
+              </GlassCard>
+              </FadeInStagger>
 
-              <View style={[styles.sectionCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.border }]}>
+              <FadeInStagger index={1}>
+              <GlassCard style={styles.sectionCard}>
                 <View style={styles.sectionHeader}>
                   <Text style={[styles.sectionTitle, { color: colors.text }]}>Nombre de places</Text>
                   <View style={[styles.counter, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -262,9 +267,11 @@ export default function ReservationScreen() {
                 <Text style={[styles.placesRestantes, { color: colors.textSecondary }]}>
                   {trajet.places_restantes} place{trajet.places_restantes > 1 ? 's' : ''} disponible{trajet.places_restantes > 1 ? 's' : ''} sur ce trajet
                 </Text>
-              </View>
+              </GlassCard>
+              </FadeInStagger>
 
-              <View style={[styles.sectionCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.border }]}>
+              <FadeInStagger index={2}>
+              <GlassCard style={styles.sectionCard}>
                 <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 12 }]}>
                   Informations passagers
                 </Text>
@@ -298,7 +305,8 @@ export default function ReservationScreen() {
                     </View>
                   </View>
                 ))}
-              </View>
+              </GlassCard>
+              </FadeInStagger>
             </>
           )}
         </ScrollView>
@@ -356,7 +364,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 14,
     borderRadius: 18,
-    borderWidth: 1,
     padding: 14,
     gap: 12,
   },
@@ -393,7 +400,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 14,
     borderRadius: 18,
-    borderWidth: 1,
     padding: 14,
   },
   sectionHeader: {
