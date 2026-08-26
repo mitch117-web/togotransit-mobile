@@ -6,13 +6,19 @@ import { useRouter } from 'expo-router';
 import { QrCode as QrIcon, Camera as CameraIcon, History, X, Ticket, Calendar, User as UserIcon, MapPin, ChevronRight } from 'lucide-react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import api from '../../lib/api';
-import { reservations as reservationsApi, ReservationRecord } from '../../lib/togotransit-api';
+import { reservations as reservationsApi, ReservationRecord, trajets as trajetsApi, MonTrajetConduit } from '../../lib/togotransit-api';
 
 export default function TicketsScreen() {
   const { user } = useAuth();
   const { colors } = useTheme();
   const router = useRouter();
   const isStaff = user?.role === 'gestionnaire' || user?.role === 'super_admin';
+
+  // Un voyageur qui conduit un trajet aujourd'hui peut aussi valider
+  // l'embarquement de ses passagers — pas de rôle "chauffeur" à part,
+  // juste une assignation Trajet.driver_id détectée ici.
+  const [monTrajetChauffeur, setMonTrajetChauffeur] = useState<MonTrajetConduit | null>(null);
+  const canScan = isStaff || monTrajetChauffeur != null;
 
   // --- Vue voyageur : mes réservations / billets ---
   const [mesReservations, setMesReservations] = useState<ReservationRecord[]>([]);
@@ -32,12 +38,18 @@ export default function TicketsScreen() {
   }, []);
 
   useEffect(() => {
-    if (!isStaff) {
-      fetchMyReservations();
-    } else {
+    if (isStaff) {
       setLoading(false);
+      return;
     }
-  }, [isStaff, fetchMyReservations]);
+    if (user?.role === 'voyageur') {
+      trajetsApi
+        .mesTrajets()
+        .then((res) => setMonTrajetChauffeur(res.data?.[0] ?? null))
+        .catch(() => setMonTrajetChauffeur(null));
+    }
+    fetchMyReservations();
+  }, [isStaff, user?.role, fetchMyReservations]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -99,7 +111,7 @@ export default function TicketsScreen() {
     }
   };
 
-  if (isStaff) {
+  if (canScan) {
     if (!permission) {
       return <View style={[styles.container, { backgroundColor: colors.background }]} />;
     }
@@ -168,7 +180,11 @@ export default function TicketsScreen() {
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.text }]}>Validation</Text>
-          <Text style={[styles.subtitle, { color: colors.tabIconDefault }]}>Scannez les billets des passagers</Text>
+          <Text style={[styles.subtitle, { color: colors.tabIconDefault }]}>
+            {monTrajetChauffeur
+              ? `${monTrajetChauffeur.ville_depart.nom} → ${monTrajetChauffeur.ville_arrivee.nom} · ${new Date(monTrajetChauffeur.date_depart).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`
+              : 'Scannez les billets des passagers'}
+          </Text>
         </View>
 
         <View style={styles.scannerHero}>
