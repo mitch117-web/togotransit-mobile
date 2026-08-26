@@ -5,6 +5,8 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '../lib/theme';
 import { Bus, MapPin, Users, Package, ChevronRight, Navigation, Clock } from 'lucide-react-native';
 import { MonTrajetConduit } from '../lib/togotransit-api';
+import GlassCard from './ui/GlassCard';
+import FadeInStagger from './ui/FadeInStagger';
 
 type DriverParcel = {
   id: number;
@@ -76,10 +78,10 @@ export default function DriverHome({ prenom, compagnieNom, trajets, parcels, ref
               </Text>
             </View>
           ) : (
-            trajets.map((t) => (
-              <View
-                key={t.id}
-                style={[styles.card, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.border }]}
+            trajets.map((t, i) => (
+              <FadeInStagger key={t.id} index={i}>
+              <GlassCard
+                style={styles.card}
               >
                 <View style={styles.cardHeaderRow}>
                   <Text style={[styles.compagnieNom, { color: colors.primary }]}>{t.compagnie?.nom ?? 'Compagnie'}</Text>
@@ -120,7 +122,8 @@ export default function DriverHome({ prenom, compagnieNom, trajets, parcels, ref
                     {t.vehicule.type} · {t.vehicule.immatriculation}
                   </Text>
                 ) : null}
-              </View>
+              </GlassCard>
+              </FadeInStagger>
             ))
           )}
         </View>
@@ -142,10 +145,10 @@ export default function DriverHome({ prenom, compagnieNom, trajets, parcels, ref
               </Text>
             </View>
           ) : (
-            colisActifs.map((p) => (
-              <View
-                key={p.id}
-                style={[styles.card, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.border }]}
+            colisActifs.map((p, i) => (
+              <FadeInStagger key={p.id} index={i}>
+              <GlassCard
+                style={styles.card}
               >
                 <View style={styles.cardHeaderRow}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -189,7 +192,8 @@ export default function DriverHome({ prenom, compagnieNom, trajets, parcels, ref
                     <ChevronRight size={16} color={colors.onPrimary} />
                   </TouchableOpacity>
                 </View>
-              </View>
+              </GlassCard>
+              </FadeInStagger>
             ))
           )}
 
@@ -230,7 +234,7 @@ const styles = StyleSheet.create({
   countBadgeText: { fontSize: 12, fontWeight: '800' },
   emptyCard: { borderRadius: 18, borderWidth: 1, padding: 20, alignItems: 'center' },
   emptyText: { fontSize: 14, textAlign: 'center' },
-  card: { borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 14 },
+  card: { borderRadius: 20, padding: 16, marginBottom: 14 },
   cardHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   compagnieNom: { fontSize: 15, fontWeight: '800' },
   statutBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },

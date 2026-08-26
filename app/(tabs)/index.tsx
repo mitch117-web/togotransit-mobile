@@ -32,6 +32,8 @@ import LoadingState from '../../components/LoadingState';
 import ErrorState from '../../components/ErrorState';
 import TrajetCard, { Trajet } from '../../components/TrajetCard';
 import DriverHome from '../../components/DriverHome';
+import GlassCard from '../../components/ui/GlassCard';
+import FadeInStagger from '../../components/ui/FadeInStagger';
 import { villes, trajets, Ville, TrajetResult, MonTrajetConduit } from '../../lib/togotransit-api';
 import api from '../../lib/api';
 
@@ -239,7 +241,7 @@ export default function SearchHomeScreen() {
             </Text>
           </View>
 
-          <View style={[styles.searchCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.border, marginTop: -28 }]}>
+          <GlassCard style={[styles.searchCard, { marginTop: -28 }]} borderRadius={22}>
             <View style={styles.searchRow}>
               <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Départ</Text>
               <TouchableOpacity
@@ -338,7 +340,7 @@ export default function SearchHomeScreen() {
                 Rechercher un trajet
               </Text>
             </TouchableOpacity>
-          </View>
+          </GlassCard>
 
           <View style={styles.sectionHeader}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -373,12 +375,13 @@ export default function SearchHomeScreen() {
             </View>
           ) : (
             <View style={{ marginTop: 2 }}>
-              {quickResults.map((t) => (
-                <TrajetCard
-                  key={t.id}
-                  trajet={t as unknown as Trajet}
-                  onPress={() => openTrajet(t)}
-                />
+              {quickResults.map((t, i) => (
+                <FadeInStagger key={t.id} index={i}>
+                  <TrajetCard
+                    trajet={t as unknown as Trajet}
+                    onPress={() => openTrajet(t)}
+                  />
+                </FadeInStagger>
               ))}
             </View>
           )}
@@ -497,7 +500,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     borderRadius: 22,
     padding: 16,
-    borderWidth: 1,
     shadowColor: '#0b1c30',
     shadowOpacity: 0.08,
     shadowRadius: 16,
