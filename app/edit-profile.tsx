@@ -6,7 +6,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ActivityIndicator,
   Switch,
 } from 'react-native';
@@ -15,6 +14,7 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '../lib/theme';
 import { useAuth } from '../lib/auth';
 import { profile } from '../lib/togotransit-api';
+import { showAlert } from '../lib/alert';
 import { ArrowLeft, User, Mail, Phone, Lock, Bell } from 'lucide-react-native';
 
 export default function EditProfileScreen() {
@@ -44,15 +44,15 @@ export default function EditProfileScreen() {
 
   const enregistrer = async () => {
     if (!nom.trim() || !prenom.trim() || !telephone.trim()) {
-      Alert.alert('Champs requis', 'Le nom, le prénom et le téléphone sont obligatoires.');
+      showAlert('Champs requis', 'Le nom, le prénom et le téléphone sont obligatoires.');
       return;
     }
     if (nouveauMotDePasse && !motDePasseActuel) {
-      Alert.alert('Mot de passe actuel requis', 'Entrez votre mot de passe actuel pour le changer.');
+      showAlert('Mot de passe actuel requis', 'Entrez votre mot de passe actuel pour le changer.');
       return;
     }
     if (nouveauMotDePasse && nouveauMotDePasse.length < 6) {
-      Alert.alert('Mot de passe trop court', 'Le nouveau mot de passe doit contenir au moins 6 caractères.');
+      showAlert('Mot de passe trop court', 'Le nouveau mot de passe doit contenir au moins 6 caractères.');
       return;
     }
 
@@ -71,11 +71,11 @@ export default function EditProfileScreen() {
       await updateUser(res.user);
       setMotDePasseActuel('');
       setNouveauMotDePasse('');
-      Alert.alert('Profil mis à jour', 'Vos informations ont été enregistrées.', [
+      showAlert('Profil mis à jour', 'Vos informations ont été enregistrées.', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (error: any) {
-      Alert.alert('Erreur', error.response?.data?.error || "Impossible de mettre à jour le profil.");
+      showAlert('Erreur', error.response?.data?.error || "Impossible de mettre à jour le profil.");
     } finally {
       setSaving(false);
     }

@@ -1,11 +1,12 @@
 import * as React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../lib/auth';
 import { useTheme } from '../../lib/theme';
 import { User, Settings, Bell, Shield, LogOut, ChevronRight, CreditCard, MapPin, HelpCircle, Moon, Sun } from 'lucide-react-native';
 import api from '../../lib/api';
 import { profile as profileApi } from '../../lib/togotransit-api';
+import { showAlert } from '../../lib/alert';
 
 const ROLE_LABELS: Record<string, string> = {
   voyageur: 'Client',
@@ -53,23 +54,23 @@ export default function ProfileScreen() {
       await updateUser(res.user);
     } catch (error) {
       setNotificationsEnabled(!value);
-      Alert.alert('Erreur', 'Impossible de mettre à jour vos préférences de notification.');
+      showAlert('Erreur', 'Impossible de mettre à jour vos préférences de notification.');
     }
   };
 
   const handlePress = (label: string) => {
     switch (label) {
       case 'Adresses enregistrées':
-        Alert.alert('Mes Adresses', 'Cette fonctionnalité n\'est pas encore disponible.');
+        showAlert('Mes Adresses', 'Cette fonctionnalité n\'est pas encore disponible.');
         break;
       case 'Support':
-        Alert.alert('Support', 'Besoin d\'aide ?\n\nAppelez-nous au +228 22 21 00 00\nou écrivez à support@togotransit.tg');
+        showAlert('Support', 'Besoin d\'aide ?\n\nAppelez-nous au +228 22 21 00 00\nou écrivez à support@togotransit.tg');
         break;
       case 'Paramètres':
-        Alert.alert('Paramètres', 'Langue : Français\nDevise : FCFA (XOF)');
+        showAlert('Paramètres', 'Langue : Français\nDevise : FCFA (XOF)');
         break;
       default:
-        Alert.alert('Information', `La fonctionnalité "${label}" sera bientôt disponible.`);
+        showAlert('Information', `La fonctionnalité "${label}" sera bientôt disponible.`);
     }
   };
 
