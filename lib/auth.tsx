@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useSegments } from 'expo-router';
-import api from './api';
+import api, { setUnauthorizedHandler } from './api';
 import { auth as auth_api } from './togotransit-api';
 
 type User = {
@@ -53,6 +53,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     loadUser();
     checkFirstTime();
+  }, []);
+
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      AsyncStorage.multiRemove(['user', 'token']).catch(() => {});
+      setUser(null);
+      setToken(null);
+    });
+    return () => setUnauthorizedHandler(null);
   }, []);
 
   useEffect(() => {

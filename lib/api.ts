@@ -55,6 +55,12 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
+type UnauthorizedHandler = () => void;
+let unauthorizedHandler: UnauthorizedHandler | null = null;
+export function setUnauthorizedHandler(fn: UnauthorizedHandler | null) {
+  unauthorizedHandler = fn;
+}
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -67,9 +73,17 @@ api.interceptors.response.use(
     }
     const status = error.response.status;
     const data = error.response.data;
+
+    if (status === 401) {
+      // Le jeton stocké est absent/expiré/invalide : on déconnecte
+      // proprement plutôt que de laisser l'écran appelant afficher un
+      // message serveur brut ("Non authentifié") sans reconnecter l'utilisateur.
+      unauthorizedHandler?.();
+    }
+
     return Promise.reject({
       code: data?.code || (status === 401 ? 'UNAUTHORIZED' : status === 404 ? 'NOT_FOUND' : status >= 500 ? 'SERVER_ERROR' : 'BAD_REQUEST'),
-      message: data?.error || data?.message || (status === 401 ? 'Authentification requise' : 'Une erreur est survenue'),
+      message: status === 401 ? 'Votre session a expiré. Veuillez vous reconnecter.' : (data?.error || data?.message || 'Une erreur est survenue'),
       status,
       data,
       original: error,
