@@ -1,53 +1,72 @@
 import * as React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useAuth } from '../../lib/auth';
 import { useTheme } from '../../lib/theme';
 import { User, Settings, Bell, Shield, LogOut, ChevronRight, CreditCard, MapPin, HelpCircle, Moon, Sun } from 'lucide-react-native';
 import api from '../../lib/api';
+import { profile as profileApi } from '../../lib/togotransit-api';
+
+const ROLE_LABELS: Record<string, string> = {
+  voyageur: 'Client',
+  gestionnaire: 'Gestionnaire',
+  super_admin: 'Super Admin',
+};
 
 export default function ProfileScreen() {
-  const { user, signOut } = useAuth();
+  const router = useRouter();
+  const { user, signOut, updateUser } = useAuth();
   const { colors, theme, toggleTheme } = useTheme();
-  const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
+  const [notificationsEnabled, setNotificationsEnabled] = React.useState(user?.notifications_enabled ?? true);
   const [stats, setStats] = React.useState({ tickets: 0, parcels: 0, rating: 4.9 });
 
   React.useEffect(() => {
-    fetchStats();
+    setNotificationsEnabled(user?.notifications_enabled ?? true);
+  }, [user?.notifications_enabled]);
+
+  React.useEffect(() => {
+    if (user?.role === 'voyageur') {
+      fetchStats();
+    }
   }, [user]);
 
   const fetchStats = async () => {
     try {
-      const params = user?.role === 'CLIENT' ? { phone: user.phone } : {};
       const [parcelsRes, bookingsRes] = await Promise.all([
-        api.get('/parcels', { params }),
-        api.get('/bookings', { params: { userId: user?.id } })
+        api.get('/parcels'),
+        api.get('/bookings'),
       ]);
       setStats({
         tickets: bookingsRes.data?.length || 0,
         parcels: parcelsRes.data?.length || 0,
-        rating: 4.9
+        rating: 4.9,
       });
     } catch (error) {
       console.error('Failed to fetch profile stats', error);
     }
   };
 
+  const toggleNotifications = async (value: boolean) => {
+    setNotificationsEnabled(value);
+    try {
+      const res = await profileApi.update({ notifications_enabled: value });
+      await updateUser(res.user);
+    } catch (error) {
+      setNotificationsEnabled(!value);
+      Alert.alert('Erreur', 'Impossible de mettre à jour vos préférences de notification.');
+    }
+  };
+
   const handlePress = (label: string) => {
     switch (label) {
-      case 'Modes de paiement':
-        Alert.alert('Paiement', 'Vos modes de paiement :\n\n• TMoney (+228 90...)\n• Flooz (+228 99...)\n• Carte Bancaire');
-        break;
       case 'Adresses enregistrées':
-        Alert.alert('Mes Adresses', '• Domicile: Lomé, Quartier Deckon\n• Bureau: Agence TogoTransit Kara');
-        break;
-      case 'Sécurité':
-        Alert.alert('Sécurité', '• Authentification à deux facteurs active\n• Dernière connexion: Aujourd\'hui à Lomé');
+        Alert.alert('Mes Adresses', 'Cette fonctionnalité n\'est pas encore disponible.');
         break;
       case 'Support':
         Alert.alert('Support', 'Besoin d\'aide ?\n\nAppelez-nous au +228 22 21 00 00\nou écrivez à support@togotransit.tg');
         break;
       case 'Paramètres':
-        Alert.alert('Paramètres', '• Langue: Français\n• Devise: FCFA (XOF)');
+        Alert.alert('Paramètres', 'Langue : Français\nDevise : FCFA (XOF)');
         break;
       default:
         Alert.alert('Information', `La fonctionnalité "${label}" sera bientôt disponible.`);
@@ -58,7 +77,7 @@ export default function ProfileScreen() {
     {
       title: 'Compte',
       items: [
-        { icon: User, label: 'Informations personnelles', color: colors.primary, action: () => Alert.alert('Profil', `Nom: ${user?.name}\nTel: ${user?.phone}\nEmail: ${user?.email}`) },
+        { icon: User, label: 'Informations personnelles', color: colors.primary, action: () => router.push('/edit-profile') },
         { icon: CreditCard, label: 'Modes de paiement', color: colors.primary, action: () => handlePress('Modes de paiement') },
         { icon: MapPin, label: 'Adresses enregistrées', color: '#38a169', action: () => handlePress('Adresses enregistrées') },
       ]
@@ -68,7 +87,7 @@ export default function ProfileScreen() {
       items: [
         { icon: theme === 'dark' ? Moon : Sun, label: 'Mode sombre', color: theme === 'dark' ? '#f59e0b' : colors.primary, isThemeSwitch: true },
         { icon: Bell, label: 'Notifications', color: '#805ad5', hasSwitch: true },
-        { icon: Shield, label: 'Sécurité et Confidentialité', color: '#3182ce', action: () => handlePress('Sécurité') },
+        { icon: Shield, label: 'Sécurité et Confidentialité', color: '#3182ce', action: () => router.push('/edit-profile') },
       ]
     },
     {
@@ -99,7 +118,7 @@ export default function ProfileScreen() {
         <View style={[styles.roleBadge, { backgroundColor: colors.surface }]}>
           <View style={[styles.roleDot, { backgroundColor: colors.primary }]} />
           <Text style={[styles.roleText, { color: colors.primary }]}>
-            {user?.role === 'DRIVER' ? 'Chauffeur' : user?.role === 'AGENT' ? 'Agent' : 'Client'}
+            {ROLE_LABELS[user?.role ?? ''] ?? 'Client'}
           </Text>
         </View>
       </View>
@@ -146,9 +165,9 @@ export default function ProfileScreen() {
                       thumbColor={theme === 'dark' ? colors.primary : '#f4f3f4'}
                     />
                   ) : item.hasSwitch ? (
-                    <Switch 
-                      value={notificationsEnabled} 
-                      onValueChange={setNotificationsEnabled}
+                    <Switch
+                      value={notificationsEnabled}
+                      onValueChange={toggleNotifications}
                       trackColor={{ false: colors.border, true: colors.primary + '80' }}
                       thumbColor={notificationsEnabled ? colors.primary : '#f4f3f4'}
                     />

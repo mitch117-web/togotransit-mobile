@@ -190,6 +190,23 @@ export interface BilletDetail {
   };
 }
 
+export interface ProfileUpdateInput {
+  nom?: string;
+  prenom?: string;
+  email?: string | null;
+  telephone?: string;
+  notifications_enabled?: boolean;
+  mot_de_passe_actuel?: string;
+  nouveau_mot_de_passe?: string;
+}
+
+export const profile = {
+  async update(data: ProfileUpdateInput) {
+    const { data: res } = await api.patch('/auth/me', data);
+    return res as { success: boolean; user: any };
+  },
+};
+
 export const auth = {
   async login(login: string, mot_de_passe: string) {
     const payload: any = { mot_de_passe };

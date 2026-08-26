@@ -18,6 +18,7 @@ type User = {
   statut?: string;
   token?: string;
   notifications?: any[];
+  notifications_enabled?: boolean;
 };
 
 type AuthContextType = {
@@ -26,6 +27,7 @@ type AuthContextType = {
   signIn: (login: string, password: string) => Promise<void>;
   signUp: (data: { nom: string; prenom: string; telephone: string; email?: string; mot_de_passe: string; compagnie_id?: number | null }) => Promise<void>;
   signOut: () => Promise<void>;
+  updateUser: (raw: any) => Promise<void>;
   isLoading: boolean;
   setOnboarded: () => Promise<void>;
 };
@@ -110,6 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       statut: raw.statut ?? 'actif',
       token: raw.token ?? raw.jwt ?? raw.accessToken,
       notifications: raw.notifications ?? [],
+      notifications_enabled: raw.notifications_enabled ?? true,
     }
   }
 
@@ -169,8 +172,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(null);
   };
 
+  const updateUser = async (raw: any) => {
+    const u = normalizeUser(raw);
+    if (token) u.token = token;
+    await AsyncStorage.setItem('user', JSON.stringify(u));
+    setUser(u);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, signIn, signUp, signOut, isLoading, setOnboarded }}>
+    <AuthContext.Provider value={{ user, token, signIn, signUp, signOut, updateUser, isLoading, setOnboarded }}>
       {children}
     </AuthContext.Provider>
   );
