@@ -7,6 +7,8 @@ import { User, Settings, Bell, Shield, LogOut, ChevronRight, CreditCard, MapPin,
 import api from '../../lib/api';
 import { profile as profileApi } from '../../lib/togotransit-api';
 import { showAlert } from '../../lib/alert';
+import GlassCard from '../../components/ui/GlassCard';
+import FadeInStagger from '../../components/ui/FadeInStagger';
 
 const ROLE_LABELS: Record<string, string> = {
   voyageur: 'Client',
@@ -129,7 +131,7 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      <View style={styles.statsRow}>
+      <GlassCard style={styles.statsRow} borderRadius={20}>
         <View style={[styles.statItem, { borderRightColor: colors.border + '40' }]}>
           <Text style={[styles.statValue, { color: colors.text }]}>{stats.tickets}</Text>
           <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Trajets</Text>
@@ -142,13 +144,14 @@ export default function ProfileScreen() {
           <Text style={[styles.statValue, { color: colors.text }]}>{stats.rating}</Text>
           <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Note</Text>
         </View>
-      </View>
+      </GlassCard>
 
       <View style={styles.menuContainer}>
         {menuSections.map((section, sIndex) => (
-          <View key={sIndex} style={styles.section}>
+          <FadeInStagger key={sIndex} index={sIndex}>
+          <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>{section.title}</Text>
-            <View style={[styles.sectionCard, { backgroundColor: colors.surface, borderColor: colors.border + '40' }]}>
+            <GlassCard style={styles.sectionCard} borderRadius={24}>
               {section.items.map((item, iIndex) => (
                 <TouchableOpacity
                   key={iIndex}
@@ -182,8 +185,9 @@ export default function ProfileScreen() {
                   )}
                 </TouchableOpacity>
               ))}
-            </View>
+            </GlassCard>
           </View>
+          </FadeInStagger>
         ))}
 
         <TouchableOpacity
@@ -302,7 +306,6 @@ const styles = StyleSheet.create({
   },
   sectionCard: {
     borderRadius: 24,
-    borderWidth: 1,
     overflow: 'hidden',
   },
   menuItem: {
