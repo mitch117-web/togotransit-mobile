@@ -22,15 +22,11 @@ export default function ParcelsScreen() {
   const fetchParcels = async (searchQuery = '') => {
     setLoading(true);
     try {
-      let params: any = {};
+      const params: any = {};
       if (searchQuery) {
         params.q = searchQuery;
-      } else if (user?.role === 'CLIENT') {
-        params.phone = user.phone;
-      } else if (user?.role === 'DRIVER') {
-        params.driverId = user.id;
       }
-      
+
       const response = await api.get('/parcels', { params });
       setParcels(response.data);
     } catch (error) {
@@ -41,15 +37,21 @@ export default function ParcelsScreen() {
     }
   };
 
+  // Un colis est "à livrer" du point de vue de cet utilisateur s'il est le
+  // chauffeur assigné — pas un rôle global, chaque utilisateur (voyageur)
+  // peut avoir à la fois ses propres envois et des livraisons assignées.
+  const isMyDelivery = (item: any) =>
+    item.driverId != null && String(item.driverId) === String(user?.id);
+
   const handleAction = (item: any) => {
-    if (user?.role === 'DRIVER') {
+    if (isMyDelivery(item)) {
       router.push({
         pathname: '/delivery-confirmation',
-        params: { 
-          parcelId: item.id, 
-          trackingId: item.trackingId, 
+        params: {
+          parcelId: item.id,
+          trackingId: item.trackingId,
           destination: item.destination,
-          receiverName: item.receiverName 
+          receiverName: item.receiverName
         }
       });
     } else {
@@ -101,7 +103,7 @@ export default function ParcelsScreen() {
 
   const renderItem = ({ item }: { item: any }) => {
     const statusStyle = getStatusColor(item.status);
-    const isDriver = user?.role === 'DRIVER';
+    const isDriver = isMyDelivery(item);
 
     if (isDriver) {
       const isDelivered = item.status === 'DELIVERED';
@@ -158,7 +160,16 @@ export default function ParcelsScreen() {
 
           {!isDelivered && (
             <View style={styles.cardActions}>
-              <TouchableOpacity 
+              {item.status === 'IN_TRANSIT' && (
+                <TouchableOpacity
+                  style={[styles.trackButton, { backgroundColor: colors.surfaceContainerHigh, marginTop: 0, marginBottom: 10 }]}
+                  onPress={() => router.push({ pathname: '/live-tracking', params: { parcelId: item.id } })}
+                >
+                  <Navigation size={18} color={colors.primary} />
+                  <Text style={[styles.trackButtonText, { color: colors.primary }]}>Partager ma position</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
                 style={[styles.driverActionBtn, { backgroundColor: colors.primary }]}
                 onPress={() => handleAction(item)}
               >
@@ -234,11 +245,9 @@ export default function ParcelsScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>
-          {user?.role === 'DRIVER' ? 'Tournée du jour' : 'Mes Colis'}
-        </Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Mes Colis</Text>
         <Text style={[styles.headerSubtitle, { color: colors.tabIconDefault }]}>
-          {user?.role === 'DRIVER' ? `${parcels.length} colis à livrer` : 'Suivez vos expéditions'}
+          {parcels.some(isMyDelivery) ? 'Vos envois et vos livraisons assignées' : 'Suivez vos expéditions'}
         </Text>
       </View>
 
