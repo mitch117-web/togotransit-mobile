@@ -13,13 +13,18 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
-import { Colors } from '../../constants/Colors';
-import { useColorScheme } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { UserPlus, ArrowLeft, User, Mail, Phone, Lock, Eye, EyeOff, ShieldCheck, Check } from 'lucide-react-native';
-import api from '../../lib/api';
+import { useAuth } from '../../lib/auth';
+import FadeInStagger from '../../components/ui/FadeInStagger';
+import GlassCard from '../../components/ui/GlassCard';
+
+const GOLD = '#fd761a';
+const GOLD_DIM = '#e8650a';
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const { signUp } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -27,167 +32,159 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [agreed, setAgreed] = useState(false);
-  
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
 
   const handleRegister = async () => {
-    if (!name || !email || !phone || !password) {
-      Alert.alert('Champs requis', 'Veuillez remplir tous les champs pour créer votre compte.');
+    if (!name || !phone || !password) {
+      Alert.alert('Champs requis', 'Veuillez remplir votre nom, votre téléphone et votre mot de passe.');
       return;
     }
     if (!agreed) {
-      Alert.alert('Conditions d\'utilisation', 'Veuillez accepter les conditions d\'utilisation.');
+      Alert.alert("Conditions d'utilisation", "Veuillez accepter les conditions d'utilisation.");
       return;
     }
 
+    const parts = name.trim().split(/\s+/);
+    const prenom = parts[0] || name.trim();
+    const nom = parts.slice(1).join(' ') || parts[0];
+
     setLoading(true);
     try {
-      await api.post('/users', {
-        name,
-        email,
-        phone,
-        password,
-        role: 'CLIENT',
-      });
-      
-      Alert.alert(
-        'Bienvenue !',
-        'Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter.',
-        [{ text: 'Se connecter', onPress: () => router.replace('/(auth)/login') }]
-      );
+      await signUp({ nom, prenom, telephone: phone, email: email || undefined, mot_de_passe: password });
+      router.replace('/(tabs)');
     } catch (error: any) {
-      Alert.alert('Erreur', error.response?.data?.error || 'Une erreur est survenue. Veuillez réessayer.');
+      Alert.alert('Erreur', error?.data?.error || error?.message || 'Une erreur est survenue. Veuillez réessayer.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.surfaceContainerLow }]}>
+    <SafeAreaView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
+
+      <View style={styles.glowTop} pointerEvents="none" />
+
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <TouchableOpacity 
-            style={[styles.backBtn, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + '40' }]} 
-            onPress={() => router.back()}
-          >
-            <ArrowLeft color={colors.primary} size={24} />
+          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+            <ArrowLeft color={GOLD} size={24} />
           </TouchableOpacity>
 
-          <View style={styles.header}>
-            <Text style={[styles.title, { color: colors.onSurface }]}>Créer un compte</Text>
-            <Text style={[styles.subtitle, { color: colors.onSurfaceVariant }]}>
-              Rejoignez la première plateforme de transport et logistique du Togo.
-            </Text>
-          </View>
-
-          <View style={styles.form}>
-            <View style={styles.inputWrapper}>
-              <Text style={[styles.label, { color: colors.onSurfaceVariant }]}>Nom complet</Text>
-              <View style={[styles.inputField, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + '40' }]}>
-                <User size={20} color={colors.outline} />
-                <TextInput
-                  style={[styles.textInput, { color: colors.onSurface }]}
-                  placeholder="Ex: Koffi Mensah"
-                  placeholderTextColor={colors.outline}
-                  value={name}
-                  onChangeText={setName}
-                />
-              </View>
+          <FadeInStagger index={0}>
+            <View style={styles.header}>
+              <Text style={styles.title}>Créer un compte</Text>
+              <Text style={styles.subtitle}>
+                Rejoignez la première plateforme de transport et logistique du Togo.
+              </Text>
             </View>
+          </FadeInStagger>
 
-            <View style={styles.inputWrapper}>
-              <Text style={[styles.label, { color: colors.onSurfaceVariant }]}>Email</Text>
-              <View style={[styles.inputField, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + '40' }]}>
-                <Mail size={20} color={colors.outline} />
-                <TextInput
-                  style={[styles.textInput, { color: colors.onSurface }]}
-                  placeholder="votre@email.com"
-                  placeholderTextColor={colors.outline}
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
+          <FadeInStagger index={1}>
+            <GlassCard style={styles.form} borderRadius={24}>
+              <View style={styles.inputWrapper}>
+                <Text style={styles.label}>Nom complet</Text>
+                <View style={styles.inputField}>
+                  <User size={20} color="rgba(245,247,255,0.5)" />
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="Ex: Koffi Mensah"
+                    placeholderTextColor="rgba(245,247,255,0.3)"
+                    value={name}
+                    onChangeText={setName}
+                  />
+                </View>
               </View>
-            </View>
 
-            <View style={styles.inputWrapper}>
-              <Text style={[styles.label, { color: colors.onSurfaceVariant }]}>Téléphone</Text>
-              <View style={[styles.inputField, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + '40' }]}>
-                <Phone size={20} color={colors.outline} />
-                <TextInput
-                  style={[styles.textInput, { color: colors.onSurface }]}
-                  placeholder="Ex: 90 00 00 00"
-                  placeholderTextColor={colors.outline}
-                  value={phone}
-                  onChangeText={setPhone}
-                  keyboardType="phone-pad"
-                />
+              <View style={styles.inputWrapper}>
+                <Text style={styles.label}>Email (optionnel)</Text>
+                <View style={styles.inputField}>
+                  <Mail size={20} color="rgba(245,247,255,0.5)" />
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="votre@email.com"
+                    placeholderTextColor="rgba(245,247,255,0.3)"
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
               </View>
-            </View>
 
-            <View style={styles.inputWrapper}>
-              <Text style={[styles.label, { color: colors.onSurfaceVariant }]}>Mot de passe</Text>
-              <View style={[styles.inputField, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + '40' }]}>
-                <Lock size={20} color={colors.outline} />
-                <TextInput
-                  style={[styles.textInput, { color: colors.onSurface }]}
-                  placeholder="••••••••"
-                  placeholderTextColor={colors.outline}
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPassword}
-                />
-                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                  {showPassword ? <EyeOff size={20} color={colors.outline} /> : <Eye size={20} color={colors.outline} />}
-                </TouchableOpacity>
+              <View style={styles.inputWrapper}>
+                <Text style={styles.label}>Téléphone</Text>
+                <View style={styles.inputField}>
+                  <Phone size={20} color="rgba(245,247,255,0.5)" />
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="Ex: 90 00 00 00"
+                    placeholderTextColor="rgba(245,247,255,0.3)"
+                    value={phone}
+                    onChangeText={setPhone}
+                    keyboardType="phone-pad"
+                  />
+                </View>
               </View>
-            </View>
 
-            <TouchableOpacity 
-              style={styles.termsRow}
-              onPress={() => setAgreed(!agreed)}
-            >
-              <View style={[
-                styles.checkbox, 
-                { borderColor: agreed ? colors.primary : colors.outlineVariant, backgroundColor: agreed ? colors.primary : 'transparent' }
-              ]}>
-                {agreed && <Check size={14} color="white" strokeWidth={3} />}
+              <View style={styles.inputWrapper}>
+                <Text style={styles.label}>Mot de passe</Text>
+                <View style={styles.inputField}>
+                  <Lock size={20} color="rgba(245,247,255,0.5)" />
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="••••••••"
+                    placeholderTextColor="rgba(245,247,255,0.3)"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                  />
+                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                    {showPassword ? (
+                      <EyeOff size={20} color="rgba(245,247,255,0.5)" />
+                    ) : (
+                      <Eye size={20} color="rgba(245,247,255,0.5)" />
+                    )}
+                  </TouchableOpacity>
+                </View>
               </View>
-              <Text style={[styles.termsText, { color: colors.onSurfaceVariant }]}>
-                J'accepte les <Text style={{ color: colors.primary, fontWeight: '700' }}>Conditions d'Utilisation</Text> et la <Text style={{ color: colors.primary, fontWeight: '700' }}>Politique de Confidentialité</Text>.
+
+              <TouchableOpacity style={styles.termsRow} onPress={() => setAgreed(!agreed)}>
+                <View style={[styles.checkbox, agreed && styles.checkboxChecked]}>
+                  {agreed && <Check size={14} color="#1a0800" strokeWidth={3} />}
+                </View>
+                <Text style={styles.termsText}>
+                  J'accepte les <Text style={styles.termsAccent}>Conditions d'Utilisation</Text> et la{' '}
+                  <Text style={styles.termsAccent}>Politique de Confidentialité</Text>.
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={handleRegister} disabled={loading || !agreed} activeOpacity={0.85}>
+                <LinearGradient
+                  colors={agreed ? [GOLD, GOLD_DIM] : ['#2a3450', '#2a3450']}
+                  style={styles.registerBtn}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#1a0800" />
+                  ) : (
+                    <>
+                      <Text style={[styles.registerBtnText, !agreed && { color: 'rgba(245,247,255,0.4)' }]}>
+                        Créer mon compte
+                      </Text>
+                      <ShieldCheck size={20} color={agreed ? '#1a0800' : 'rgba(245,247,255,0.4)'} strokeWidth={2.5} />
+                    </>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            </GlassCard>
+          </FadeInStagger>
+
+          <FadeInStagger index={2}>
+            <TouchableOpacity style={styles.loginLink} onPress={() => router.replace('/(auth)/login')}>
+              <Text style={styles.loginText}>
+                Déjà membre ? <Text style={styles.loginTextAccent}>Se connecter</Text>
               </Text>
             </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.registerBtn, { backgroundColor: agreed ? colors.primary : colors.outlineVariant }]}
-              onPress={handleRegister}
-              disabled={loading || !agreed}
-            >
-              {loading ? (
-                <ActivityIndicator color={colors.onPrimary} />
-              ) : (
-                <>
-                  <Text style={[styles.registerBtnText, { color: colors.onPrimary }]}>Créer mon compte</Text>
-                  <ShieldCheck size={20} color={colors.onPrimary} strokeWidth={2.5} />
-                </>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.loginLink}
-              onPress={() => router.replace('/(auth)/login')}
-            >
-              <Text style={[styles.loginText, { color: colors.onSurfaceVariant }]}>
-                Déjà membre ? <Text style={{ color: colors.primary, fontWeight: '800' }}>Se connecter</Text>
-              </Text>
-            </TouchableOpacity>
-          </View>
+          </FadeInStagger>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -197,6 +194,16 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#070d1a',
+  },
+  glowTop: {
+    position: 'absolute',
+    top: -120,
+    right: -100,
+    width: 300,
+    height: 300,
+    borderRadius: 999,
+    backgroundColor: 'rgba(253,118,26,0.14)',
   },
   scrollContent: {
     flexGrow: 1,
@@ -208,42 +215,50 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 16,
     borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(255,255,255,0.05)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 28,
   },
   header: {
-    marginBottom: 40,
+    marginBottom: 28,
   },
   title: {
     fontSize: 28,
     fontWeight: '900',
     letterSpacing: -0.5,
     marginBottom: 12,
+    color: '#f5f7ff',
   },
   subtitle: {
     fontSize: 15,
     lineHeight: 22,
+    color: 'rgba(245,247,255,0.55)',
   },
   form: {
-    gap: 20,
+    gap: 18,
+    padding: 20,
   },
   inputWrapper: {
     gap: 10,
   },
   label: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginLeft: 4,
+    color: 'rgba(245,247,255,0.55)',
   },
   inputField: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 60,
+    height: 58,
     borderRadius: 16,
     borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(255,255,255,0.05)',
     paddingHorizontal: 16,
     gap: 12,
   },
@@ -251,12 +266,13 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '600',
+    color: '#f5f7ff',
   },
   termsRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
-    marginTop: 8,
+    marginTop: 4,
     paddingHorizontal: 4,
   },
   checkbox: {
@@ -264,40 +280,53 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 6,
     borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.25)',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 2,
+  },
+  checkboxChecked: {
+    backgroundColor: GOLD,
+    borderColor: GOLD,
   },
   termsText: {
     flex: 1,
     fontSize: 13,
     lineHeight: 20,
+    color: 'rgba(245,247,255,0.55)',
+  },
+  termsAccent: {
+    color: GOLD,
+    fontWeight: '700',
   },
   registerBtn: {
-    height: 64,
-    borderRadius: 32,
+    height: 60,
+    borderRadius: 18,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 12,
-    marginTop: 16,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
+    marginTop: 6,
   },
   registerBtnText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '800',
+    color: '#1a0800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   loginLink: {
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 24,
     marginBottom: 40,
   },
   loginText: {
     fontSize: 15,
     fontWeight: '600',
+    color: 'rgba(245,247,255,0.6)',
+  },
+  loginTextAccent: {
+    color: GOLD,
+    fontWeight: '800',
   },
 });
