@@ -5,6 +5,8 @@ import { Search, Package, MapPin, ChevronRight, RefreshCw, User, Navigation } fr
 import { useAuth } from '../../lib/auth';
 import api from '../../lib/api';
 import { useRouter } from 'expo-router';
+import GlassCard from '../../components/ui/GlassCard';
+import FadeInStagger from '../../components/ui/FadeInStagger';
 
 export default function ParcelsScreen() {
   const router = useRouter();
@@ -96,21 +98,20 @@ export default function ParcelsScreen() {
     }
   };
 
-  const renderItem = ({ item }: { item: any }) => {
+  const renderItem = ({ item, index }: { item: any; index: number }) => {
     const statusStyle = getStatusColor(item.status);
     const isDriver = isMyDelivery(item);
 
     if (isDriver) {
       const isDelivered = item.status === 'DELIVERED';
       return (
+        <FadeInStagger index={index}>
         <TouchableOpacity
-          style={[
-            styles.parcelCard, 
-            { backgroundColor: colors.surface, borderColor: colors.outlineVariant + '40' },
-            isDelivered && { opacity: 0.7 }
-          ]}
+          activeOpacity={0.85}
+          style={isDelivered && { opacity: 0.7 }}
           onPress={() => !isDelivered && handleAction(item)}
         >
+        <GlassCard style={styles.parcelCard}>
           <View style={styles.parcelHeader}>
             <View>
               <Text style={[styles.labelSmall, { color: colors.onSurfaceVariant }]}>
@@ -182,12 +183,15 @@ export default function ParcelsScreen() {
               </Text>
             </View>
           )}
+        </GlassCard>
         </TouchableOpacity>
+        </FadeInStagger>
       );
     }
 
     return (
-      <View style={[styles.parcelCard, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + '40' }]}>
+      <FadeInStagger index={index}>
+      <GlassCard style={styles.parcelCard}>
         <TouchableOpacity
           style={styles.parcelContent}
           onPress={() => handleAction(item)}
@@ -233,7 +237,8 @@ export default function ParcelsScreen() {
             </Text>
           </TouchableOpacity>
         )}
-      </View>
+      </GlassCard>
+      </FadeInStagger>
     );
   };
 
@@ -326,7 +331,6 @@ const styles = StyleSheet.create({
   parcelCard: {
     padding: 16,
     borderRadius: 20,
-    borderWidth: 1,
     marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

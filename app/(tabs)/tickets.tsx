@@ -7,6 +7,8 @@ import { QrCode as QrIcon, Camera as CameraIcon, History, X, Ticket, Calendar, U
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import api from '../../lib/api';
 import { reservations as reservationsApi, ReservationRecord, trajets as trajetsApi, MonTrajetConduit } from '../../lib/togotransit-api';
+import GlassCard from '../../components/ui/GlassCard';
+import FadeInStagger from '../../components/ui/FadeInStagger';
 
 export default function TicketsScreen() {
   const { user } = useAuth();
@@ -283,11 +285,12 @@ export default function TicketsScreen() {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
-          renderItem={({ item }) => {
+          renderItem={({ item, index }) => {
             const trajet = item.trajet;
             const billets = item.billets ?? [];
             return (
-              <View style={[styles.ticketCard, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
+              <FadeInStagger index={index}>
+              <GlassCard style={styles.ticketCard}>
                 <View style={[styles.ticketHeader, { borderBottomColor: colors.outlineVariant }]}>
                   <View style={[styles.ticketType, { backgroundColor: colors.surfaceContainerHigh }]}>
                     <Ticket size={16} color={colors.primary} />
@@ -392,7 +395,8 @@ export default function TicketsScreen() {
                     </Text>
                   )}
                 </View>
-              </View>
+              </GlassCard>
+              </FadeInStagger>
             );
           }}
           ListEmptyComponent={
@@ -438,7 +442,6 @@ const styles = StyleSheet.create({
   },
   ticketCard: {
     borderRadius: 24,
-    borderWidth: 1,
     marginBottom: 20,
     overflow: 'hidden',
     elevation: 2,
