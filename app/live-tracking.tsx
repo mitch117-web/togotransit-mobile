@@ -31,18 +31,39 @@ const Polyline = Platform.OS !== 'web'
   ? lazy(() => import('react-native-maps').then(mod => ({ default: mod.Polyline })))
   : () => null;
 
-// Route de secours (démo) utilisée uniquement tant qu'aucune position GPS
-// réelle n'a encore été reçue du chauffeur. Définie hors du composant pour
-// garder la même référence de tableau à chaque rendu — sinon Marker/Polyline
-// la considèrent "changée" à chaque re-render et se remontent inutilement,
-// ce qui provoquait le clignotement/saccade observé sur la carte.
-const ROUTE_COORDINATES = [
-  { latitude: 6.1725, longitude: 1.2314 }, // Lomé
-  { latitude: 6.1525, longitude: 1.2514 },
-  { latitude: 6.1325, longitude: 1.2714 },
-  { latitude: 6.1125, longitude: 1.2914 },
-  { latitude: 6.0925, longitude: 1.3114 },
-];
+// Coordonnées réelles (approximatives) des villes togolaises utilisées par
+// l'app — permet de tracer un itinéraire départ → destination qui suit la
+// vraie géographie du pays plutôt qu'une ligne arbitraire. Le pays n'a pas
+// encore de géocodage réel en base (villes.latitude/longitude sont nulles).
+const TOGO_CITY_COORDS: Record<string, { latitude: number; longitude: number }> = {
+  'lomé': { latitude: 6.1319, longitude: 1.2228 },
+  'lome': { latitude: 6.1319, longitude: 1.2228 },
+  'tsévié': { latitude: 6.4167, longitude: 1.2167 },
+  'tsevie': { latitude: 6.4167, longitude: 1.2167 },
+  'aného': { latitude: 6.2333, longitude: 1.6000 },
+  'aneho': { latitude: 6.2333, longitude: 1.6000 },
+  'kpalimé': { latitude: 6.9000, longitude: 0.6333 },
+  'kpalime': { latitude: 6.9000, longitude: 0.6333 },
+  'atakpamé': { latitude: 7.5333, longitude: 1.1333 },
+  'atakpame': { latitude: 7.5333, longitude: 1.1333 },
+  'sokodé': { latitude: 8.9833, longitude: 1.1333 },
+  'sokode': { latitude: 8.9833, longitude: 1.1333 },
+  'kara': { latitude: 9.5511, longitude: 1.1861 },
+  'bafilo': { latitude: 9.3500, longitude: 1.2833 },
+  'mango': { latitude: 10.3667, longitude: 0.4667 },
+  'dapaong': { latitude: 10.8628, longitude: 0.2078 },
+  'cinkassé': { latitude: 11.0833, longitude: 0.2833 },
+  'cinkasse': { latitude: 11.0833, longitude: 0.2833 },
+};
+
+const getCityCoord = (nom?: string) => {
+  const key = (nom || '').trim().toLowerCase();
+  return TOGO_CITY_COORDS[key] || TOGO_CITY_COORDS['lomé'];
+};
+
+// Région par défaut couvrant tout le Togo, affichée le temps que la carte
+// se cadre précisément sur l'itinéraire réel (voir fitToCoordinates).
+const TOGO_DEFAULT_REGION = { latitude: 8.2, longitude: 1.0, latitudeDelta: 6.5, longitudeDelta: 3.2 };
 
 export default function LiveTrackingScreen() {
   const { colors } = useTheme();
@@ -54,36 +75,22 @@ export default function LiveTrackingScreen() {
   const [parcel, setParcel] = useState<any>(null);
   const [driverLocation, setDriverLocation] = useState<any>(null);
   const [hasRealLocation, setHasRealLocation] = useState(false);
-  const [region, setRegion] = useState<any>({
-    latitude: 6.1725,
-    longitude: 1.2314,
-    latitudeDelta: 0.0922,
-    longitudeDelta: 0.0421,
-  });
   const [eta, setEta] = useState('25 min');
   const watchSubscription = React.useRef<any>(null);
   const mapRef = React.useRef<any>(null);
-  const routeCoordinates = ROUTE_COORDINATES;
 
   const isAssignedDriver = !!(user?.id && parcel?.driverId && user.id === parcel.driverId);
+
+  const originCoord = getCityCoord(parcel?.origin);
+  const destCoord = getCityCoord(parcel?.destination);
+  const routeCoordinates = [originCoord, destCoord];
 
   useEffect(() => {
     if (!parcelId) return;
     fetchParcel();
     const poll = setInterval(fetchParcel, 5000);
-    let simIndex = 0;
-    const sim = setInterval(() => {
-      if (hasRealLocation) return;
-      const newLocation = routeCoordinates[simIndex % routeCoordinates.length];
-      setDriverLocation(newLocation);
-      setRegion({ ...newLocation, latitudeDelta: 0.01, longitudeDelta: 0.01 });
-      simIndex++;
-    }, 3000);
-    return () => {
-      clearInterval(poll);
-      clearInterval(sim);
-    };
-  }, [parcelId, hasRealLocation]);
+    return () => clearInterval(poll);
+  }, [parcelId]);
 
   useEffect(() => {
     return () => {
@@ -91,13 +98,21 @@ export default function LiveTrackingScreen() {
     };
   }, []);
 
-  // La carte ne suit plus `region` comme prop contrôlée (ce qui la faisait
-  // se re-centrer d'un coup sec, sans transition, à chaque mise à jour —
-  // d'où l'effet de saccade/clignotement signalé). On anime la caméra
-  // manuellement à chaque nouvelle position, avec une transition fluide.
+  // Pas de simulation de déplacement : tant qu'aucune position GPS réelle
+  // n'a été partagée par le chauffeur, on affiche simplement l'itinéraire
+  // (départ → destination), cadré proprement sur la carte. Si une position
+  // réelle arrive, elle est intégrée au cadrage.
   useEffect(() => {
-    mapRef.current?.animateToRegion?.(region, 1800);
-  }, [region]);
+    if (!parcel) return;
+    const points = hasRealLocation && driverLocation
+      ? [originCoord, driverLocation, destCoord]
+      : [originCoord, destCoord];
+    mapRef.current?.fitToCoordinates?.(points, {
+      edgePadding: { top: 80, right: 80, bottom: 80, left: 80 },
+      animated: true,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [parcel, hasRealLocation, driverLocation]);
 
   const fetchParcel = async () => {
     try {
@@ -111,7 +126,6 @@ export default function LiveTrackingScreen() {
         if (lastGps) {
           const loc = { latitude: lastGps.metadata.latitude, longitude: lastGps.metadata.longitude };
           setDriverLocation(loc);
-          setRegion({ ...loc, latitudeDelta: 0.01, longitudeDelta: 0.01 });
           setHasRealLocation(true);
         }
       } catch (_) {
@@ -179,7 +193,7 @@ export default function LiveTrackingScreen() {
             <MapView
               ref={mapRef}
               style={styles.map}
-              initialRegion={region}
+              initialRegion={TOGO_DEFAULT_REGION}
               showsUserLocation={isAssignedDriver}
               showsMyLocationButton={isAssignedDriver}
             >
