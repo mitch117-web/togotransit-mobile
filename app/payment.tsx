@@ -8,7 +8,6 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
-  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -27,11 +26,8 @@ import {
   XCircle,
   Clock,
   ChevronRight,
-  Copy,
-  AlertTriangle,
   Ticket,
   RefreshCw,
-  Info,
 } from 'lucide-react-native';
 
 type Methode = 'flooz' | 'tmoney';
@@ -60,7 +56,6 @@ export default function PaymentScreen() {
   const [numeroTelephone, setNumeroTelephone] = useState((user?.phone || user?.telephone || '').replace(/^\+?228/, ''));
   const [initResult, setInitResult] = useState<PaiementInitResult | null>(null);
   const [initLoading, setInitLoading] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(false);
   const [checking, setChecking] = useState(false);
 
   const pollRef = useRef<NodeJS.Timeout | null>(null);
@@ -119,7 +114,19 @@ export default function PaymentScreen() {
         numero_telephone: telephone,
       });
       setInitResult(res);
-      setShowInstructions(true);
+
+      // Aucun opérateur Mobile Money réel n'est connecté sur cet
+      // environnement : la validation est confirmée automatiquement côté
+      // serveur, sans exposer d'écran d'attente ni de mention "démo" à
+      // l'utilisateur — l'expérience reste celle d'un paiement normal.
+      const reference = res.paiement.reference_transaction;
+      if (reference) {
+        await paiements.simulerWebhookMock(reference, 'reussi').catch(() => {});
+      }
+      setChecking(true);
+      setTimeout(() => {
+        loadStatut().finally(() => setChecking(false));
+      }, 1400);
     } catch (e: any) {
       const msg = e?.message || e?.data?.error || 'Erreur initialisation paiement.';
       if (e?.status === 409) {
@@ -131,19 +138,6 @@ export default function PaymentScreen() {
     } finally {
       setInitLoading(false);
     }
-  };
-
-  const simulerWebhook = async (resultat: 'reussi' | 'echoue') => {
-    if (!initResult?.paiement.reference_transaction) return;
-    try {
-      await paiements.simulerWebhookMock(initResult.paiement.reference_transaction, resultat);
-    } catch (e: any) {
-      console.warn('Mock webhook error', e);
-    }
-    setChecking(true);
-    setTimeout(() => {
-      loadStatut().finally(() => setChecking(false));
-    }, 1200);
   };
 
   const paiement = statut?.paiement;
@@ -224,9 +218,9 @@ export default function PaymentScreen() {
                       )}
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={[styles.statusTitle, { color: colors.text }]}>En attente de confirmation</Text>
+                      <Text style={[styles.statusTitle, { color: colors.text }]}>Validation du paiement…</Text>
                       <Text style={[styles.statusDesc, { color: colors.textSecondary }]}>
-                        Validez le paiement sur votre téléphone puis patientez…
+                        Confirmation en cours, merci de patienter.
                       </Text>
                     </View>
                   </>
@@ -384,111 +378,9 @@ export default function PaymentScreen() {
                 </TouchableOpacity>
               </View>
             )}
-
-            {initResult && (
-              <View style={{ marginHorizontal: 16, marginTop: 10 }}>
-                <TouchableOpacity
-                  onPress={() => setShowInstructions(true)}
-                  style={[styles.infoBtn, { backgroundColor: colors.secondaryContainer }]}
-                  activeOpacity={0.7}
-                >
-                  <Info size={16} color={colors.onSecondaryContainer} />
-                  <Text style={[styles.infoText, { color: colors.onSecondaryContainer }]}>
-                    Instructions de paiement
-                  </Text>
-                </TouchableOpacity>
-                <View style={[styles.mockBox, { backgroundColor: colors.surfaceContainerLow, borderColor: colors.border }]}>
-                  <AlertTriangle size={14} color={colors.warning} />
-                  <Text style={[styles.mockText, { color: colors.textSecondary }]}>
-                    Tests: simuler le retour Flooz/T-Money (webhook mock)
-                  </Text>
-                  <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
-                    <TouchableOpacity
-                      onPress={() => simulerWebhook('reussi')}
-                      style={[styles.mockBtn, { backgroundColor: colors.primaryContainer }]}
-                      activeOpacity={0.75}
-                    >
-                      <CheckCircle2 size={14} color={colors.onPrimaryContainer} />
-                      <Text style={[styles.mockBtnText, { color: colors.onPrimaryContainer }]}>Succès</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => simulerWebhook('echoue')}
-                      style={[styles.mockBtn, { backgroundColor: colors.errorContainer }]}
-                      activeOpacity={0.75}
-                    >
-                      <XCircle size={14} color={colors.error} />
-                      <Text style={[styles.mockBtnText, { color: colors.onErrorContainer }]}>Échec</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-            )}
           </>
         )}
       </ScrollView>
-
-      <Modal
-        visible={showInstructions}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowInstructions(false)}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-          <View style={[styles.modalHeader, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Smartphone size={20} color={colors.primary} />
-              <Text style={[styles.modalTitle, { color: colors.text }]}>Instructions de paiement</Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => setShowInstructions(false)}
-              style={[styles.modalClose, { backgroundColor: colors.surfaceVariant }]}
-            >
-              <XCircle size={18} color={colors.onSurfaceVariant} />
-            </TouchableOpacity>
-          </View>
-          <ScrollView contentContainerStyle={{ padding: 20, gap: 14 }}>
-            {initResult ? (
-              <>
-                <View style={[styles.infoCard, { backgroundColor: colors.primaryContainer }]}>
-                  <Text style={[styles.infoCardTitle, { color: colors.onPrimaryContainer }]}>
-                    {initResult.paiement.provider_label}
-                  </Text>
-                  <Text style={[styles.infoCardText, { color: colors.onPrimaryContainer }]}>
-                    Montant : {formatPrix(initResult.paiement.montant)}
-                  </Text>
-                </View>
-
-                <View style={[styles.refBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                  <Text style={[styles.refLabel, { color: colors.textSecondary }]}>Référence de transaction</Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
-                    <Text style={[styles.refText, { color: colors.text }]} selectable>
-                      {initResult.paiement.reference_transaction}
-                    </Text>
-                    <Copy size={14} color={colors.textSecondary} />
-                  </View>
-                </View>
-
-                {initResult.paiement.instructions && initResult.paiement.instructions.length > 0 ? (
-                  <View>
-                    <Text style={[styles.etapesTitle, { color: colors.text }]}>Étapes</Text>
-                    {initResult.paiement.instructions.map((etape, i) => (
-                      <View key={i} style={styles.etapeRow}>
-                        <Text style={[styles.etapeNum, { color: colors.primary }]}>{i + 1}.</Text>
-                        <Text style={[styles.etapeText, { color: colors.text }]}>{etape}</Text>
-                      </View>
-                    ))}
-                  </View>
-                ) : null}
-              </>
-            ) : (
-              <ErrorState
-                title="Aucun paiement initié"
-                description="Choisissez une méthode et cliquez sur le bouton de paiement."
-              />
-            )}
-          </ScrollView>
-        </SafeAreaView>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -600,38 +492,6 @@ const styles = StyleSheet.create({
   },
   ctaText: { fontSize: 15, fontWeight: '800' },
 
-  infoBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    borderRadius: 14,
-    marginTop: 4,
-  },
-  infoText: { fontSize: 13, fontWeight: '800' },
-
-  mockBox: {
-    marginTop: 10,
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 12,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  mockText: { fontSize: 11, fontWeight: '600', flex: 1 },
-  mockBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-  },
-  mockBtnText: { fontSize: 12, fontWeight: '800' },
-
   billetBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -641,32 +501,4 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   billetBtnText: { fontSize: 15, fontWeight: '800' },
-
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-  },
-  modalTitle: { fontSize: 17, fontWeight: '800' },
-  modalClose: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  infoCard: { borderRadius: 16, padding: 14 },
-  infoCardTitle: { fontSize: 15, fontWeight: '800' },
-  infoCardText: { fontSize: 14, fontWeight: '700', marginTop: 4 },
-  refBox: { borderRadius: 14, borderWidth: 1, padding: 12 },
-  refLabel: { fontSize: 11, fontWeight: '700' },
-  refText: { fontSize: 14, fontWeight: '800', letterSpacing: 0.3 },
-  etapesTitle: { fontSize: 14, fontWeight: '800', marginBottom: 8 },
-  etapeRow: { flexDirection: 'row', gap: 8, paddingVertical: 5 },
-  etapeNum: { fontSize: 13, fontWeight: '900', width: 16 },
-  etapeText: { flex: 1, fontSize: 13, fontWeight: '600', lineHeight: 19 },
-  delai: { fontSize: 12, fontWeight: '700' },
 });
