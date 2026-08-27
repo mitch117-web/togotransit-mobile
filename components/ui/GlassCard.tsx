@@ -8,6 +8,7 @@ interface GlassCardProps {
   style?: StyleProp<ViewStyle>;
   intensity?: number;
   borderRadius?: number;
+  forceDark?: boolean;
 }
 
 /**
@@ -15,9 +16,15 @@ interface GlassCardProps {
  * En mode clair, le flou est désactivé au profit d'une carte pleine classique
  * (le glass ne se lit pas sur fond clair) — le composant reste donc utilisable
  * partout sans condition côté appelant.
+ *
+ * `forceDark` ignore le thème clair/sombre choisi dans l'app : à utiliser sur
+ * les écrans à identité visuelle fixe (login/register/forgot-password) dont
+ * le texte est codé en dur en blanc — sans ça, sur thème clair, la carte
+ * redevient blanche et ce texte blanc devient invisible.
  */
-export default function GlassCard({ children, style, intensity = 40, borderRadius = 20 }: GlassCardProps) {
-  const { isDark, colors } = useTheme();
+export default function GlassCard({ children, style, intensity = 40, borderRadius = 20, forceDark = false }: GlassCardProps) {
+  const { isDark: isDarkTheme, colors } = useTheme();
+  const isDark = forceDark || isDarkTheme;
 
   if (!isDark) {
     return (

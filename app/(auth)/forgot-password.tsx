@@ -105,7 +105,7 @@ export default function ForgotPasswordScreen() {
           </FadeInStagger>
 
           <FadeInStagger index={1}>
-          <GlassCard style={styles.form} borderRadius={24}>
+          <GlassCard style={styles.form} borderRadius={24} forceDark>
             {step === 'request' ? (
               <>
                 <Text style={styles.label}>Email ou Téléphone</Text>

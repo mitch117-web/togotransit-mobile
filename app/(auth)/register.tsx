@@ -80,7 +80,7 @@ export default function RegisterScreen() {
           </FadeInStagger>
 
           <FadeInStagger index={1}>
-            <GlassCard style={styles.form} borderRadius={24}>
+            <GlassCard style={styles.form} borderRadius={24} forceDark>
               <View style={styles.inputWrapper}>
                 <Text style={styles.label}>Nom complet</Text>
                 <View style={styles.inputField}>
