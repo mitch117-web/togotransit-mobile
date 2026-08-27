@@ -17,6 +17,8 @@ import { useAuth } from '../lib/auth';
 import { paiements, PaiementInitResult, PaiementStatutResult } from '../lib/togotransit-api';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
+import GlassCard from '../components/ui/GlassCard';
+import FadeInStagger from '../components/ui/FadeInStagger';
 import {
   ArrowLeft,
   Smartphone,
@@ -179,7 +181,8 @@ export default function PaymentScreen() {
           </View>
         ) : !statut ? null : (
           <>
-            <View style={[styles.recapCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.border }]}>
+            <FadeInStagger index={0}>
+            <GlassCard style={styles.recapCard}>
               <View style={styles.montantRow}>
                 <Text style={[styles.montantLabel, { color: colors.textSecondary }]}>Montant dû</Text>
                 <Text style={[styles.montant, { color: colors.text }]}>
@@ -241,10 +244,12 @@ export default function PaymentScreen() {
                   </>
                 )}
               </View>
-            </View>
+            </GlassCard>
+            </FadeInStagger>
 
             {statutFinal !== 'confirmee' && statutFinal !== 'reussi' && (
-              <View style={[styles.sectionCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.border }]}>
+              <FadeInStagger index={1}>
+              <GlassCard style={styles.sectionCard}>
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>Méthode de paiement</Text>
                 <TouchableOpacity
                   onPress={() => setMethodeChoisie('flooz')}
@@ -323,7 +328,8 @@ export default function PaymentScreen() {
                   keyboardType="phone-pad"
                   style={[styles.phoneInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface }]}
                 />
-              </View>
+              </GlassCard>
+              </FadeInStagger>
             )}
 
             {statutFinal === 'confirmee' && statut.billets_disponibles.length > 0 && (
@@ -511,7 +517,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 14,
     borderRadius: 18,
-    borderWidth: 1,
     overflow: 'hidden',
   },
   montantRow: {
@@ -545,7 +550,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 14,
     borderRadius: 18,
-    borderWidth: 1,
     padding: 14,
     gap: 10,
   },

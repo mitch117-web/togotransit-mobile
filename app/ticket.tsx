@@ -15,6 +15,7 @@ import { billets, BilletDetail } from '../lib/togotransit-api';
 import { showAlert } from '../lib/alert';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
+import FadeInStagger from '../components/ui/FadeInStagger';
 import {
   ArrowLeft,
   MapPin,
@@ -212,7 +213,7 @@ export default function TicketScreen() {
             />
           </View>
         ) : (
-          <View style={styles.content}>
+          <FadeInStagger index={0} style={styles.content}>
             <View
               ref={ticketRef}
               collapsable={false}
@@ -348,7 +349,7 @@ export default function TicketScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </FadeInStagger>
         )}
       </ScrollView>
     </SafeAreaView>
