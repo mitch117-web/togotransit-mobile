@@ -31,6 +31,19 @@ const Polyline = Platform.OS !== 'web'
   ? lazy(() => import('react-native-maps').then(mod => ({ default: mod.Polyline })))
   : () => null;
 
+// Route de secours (démo) utilisée uniquement tant qu'aucune position GPS
+// réelle n'a encore été reçue du chauffeur. Définie hors du composant pour
+// garder la même référence de tableau à chaque rendu — sinon Marker/Polyline
+// la considèrent "changée" à chaque re-render et se remontent inutilement,
+// ce qui provoquait le clignotement/saccade observé sur la carte.
+const ROUTE_COORDINATES = [
+  { latitude: 6.1725, longitude: 1.2314 }, // Lomé
+  { latitude: 6.1525, longitude: 1.2514 },
+  { latitude: 6.1325, longitude: 1.2714 },
+  { latitude: 6.1125, longitude: 1.2914 },
+  { latitude: 6.0925, longitude: 1.3114 },
+];
+
 export default function LiveTrackingScreen() {
   const { colors } = useTheme();
   const { user } = useAuth();
@@ -49,16 +62,8 @@ export default function LiveTrackingScreen() {
   });
   const [eta, setEta] = useState('25 min');
   const watchSubscription = React.useRef<any>(null);
-
-  // Route de secours (démo) utilisée uniquement tant qu'aucune position GPS
-  // réelle n'a encore été reçue du chauffeur.
-  const routeCoordinates = [
-    { latitude: 6.1725, longitude: 1.2314 }, // Lomé
-    { latitude: 6.1525, longitude: 1.2514 },
-    { latitude: 6.1325, longitude: 1.2714 },
-    { latitude: 6.1125, longitude: 1.2914 },
-    { latitude: 6.0925, longitude: 1.3114 },
-  ];
+  const mapRef = React.useRef<any>(null);
+  const routeCoordinates = ROUTE_COORDINATES;
 
   const isAssignedDriver = !!(user?.id && parcel?.driverId && user.id === parcel.driverId);
 
@@ -85,6 +90,14 @@ export default function LiveTrackingScreen() {
       watchSubscription.current?.remove?.();
     };
   }, []);
+
+  // La carte ne suit plus `region` comme prop contrôlée (ce qui la faisait
+  // se re-centrer d'un coup sec, sans transition, à chaque mise à jour —
+  // d'où l'effet de saccade/clignotement signalé). On anime la caméra
+  // manuellement à chaque nouvelle position, avec une transition fluide.
+  useEffect(() => {
+    mapRef.current?.animateToRegion?.(region, 1800);
+  }, [region]);
 
   const fetchParcel = async () => {
     try {
@@ -164,8 +177,9 @@ export default function LiveTrackingScreen() {
         {Platform.OS !== 'web' ? (
           <Suspense fallback={<ActivityIndicator size="large" color={colors.primary} />}>
             <MapView
+              ref={mapRef}
               style={styles.map}
-              region={region}
+              initialRegion={region}
               showsUserLocation={isAssignedDriver}
               showsMyLocationButton={isAssignedDriver}
             >
