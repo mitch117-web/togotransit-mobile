@@ -2,18 +2,18 @@ import * as React from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, Platform, Image, Dimensions, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
-import { Colors } from '../constants/Colors';
-import { useColorScheme } from 'react-native';
+import { useTheme } from '../lib/theme';
 import { ArrowLeft, User, Phone, MapPin, Package, Send, Plus, Minus, Info, Camera as CameraIcon, X } from 'lucide-react-native';
 import api from '../lib/api';
 import { useAuth } from '../lib/auth';
 import * as ImagePicker from 'expo-image-picker';
+import GlassCard from '../components/ui/GlassCard';
+import FadeInStagger from '../components/ui/FadeInStagger';
 
 export default function SendParcelScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
 
   const [loading, setLoading] = React.useState(false);
   const [parcelPhoto, setParcelPhoto] = React.useState<string | null>(null);
@@ -173,7 +173,8 @@ export default function SendParcelScreen() {
             <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Expéditeur</Text>
           </View>
           
-          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + '40' }]}>
+          <FadeInStagger index={1}>
+          <GlassCard style={styles.card}>
             <View style={styles.inputWrapper}>
               <Text style={[styles.inputLabel, { color: colors.onSurfaceVariant }]}>Nom de l'expéditeur</Text>
               <View style={[styles.inputField, { backgroundColor: colors.surfaceContainerLow }]}>
@@ -197,7 +198,8 @@ export default function SendParcelScreen() {
                 />
               </View>
             </View>
-          </View>
+          </GlassCard>
+          </FadeInStagger>
         </View>
 
         {/* Section: Destinataire */}
@@ -206,8 +208,9 @@ export default function SendParcelScreen() {
             <MapPin size={18} color={colors.secondary} />
             <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Destinataire</Text>
           </View>
-          
-          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + '40' }]}>
+
+          <FadeInStagger index={2}>
+          <GlassCard style={styles.card}>
             <View style={styles.inputWrapper}>
               <Text style={[styles.inputLabel, { color: colors.onSurfaceVariant }]}>Nom du destinataire</Text>
               <View style={[styles.inputField, { borderColor: colors.outlineVariant }]}>
@@ -260,7 +263,8 @@ export default function SendParcelScreen() {
                 ))}
               </View>
             </View>
-          </View>
+          </GlassCard>
+          </FadeInStagger>
         </View>
 
         {/* Section: Colis */}
@@ -269,8 +273,9 @@ export default function SendParcelScreen() {
             <Package size={18} color={colors.tertiary} />
             <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Détails du Colis</Text>
           </View>
-          
-          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + '40' }]}>
+
+          <FadeInStagger index={3}>
+          <GlassCard style={styles.card}>
             <View style={styles.inputWrapper}>
               <Text style={[styles.inputLabel, { color: colors.onSurfaceVariant }]}>Catégorie</Text>
               <View style={styles.categoriesContainer}>
@@ -315,7 +320,8 @@ export default function SendParcelScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-          </View>
+          </GlassCard>
+          </FadeInStagger>
         </View>
 
         {/* Price & Submit */}
@@ -441,7 +447,6 @@ const styles = StyleSheet.create({
   },
   card: {
     borderRadius: 20,
-    borderWidth: 1,
     padding: 16,
     gap: 16,
     elevation: 2,
