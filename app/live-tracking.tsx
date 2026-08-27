@@ -7,6 +7,7 @@ import { useAuth } from '../lib/auth';
 import { MapPin, Navigation, Clock, X, RefreshCw, Package, Truck } from 'lucide-react-native';
 import api from '../lib/api';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import GlassCard from '../components/ui/GlassCard';
 
 // Charger react-native-maps seulement sur mobile
 const MapView = Platform.OS !== 'web' 
@@ -218,7 +219,7 @@ export default function LiveTrackingScreen() {
       </View>
 
       {/* Bottom Info Panel */}
-      <View style={[styles.infoPanel, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+      <GlassCard style={styles.infoPanel} borderRadius={24}>
         {parcel && (
           <>
             <View style={styles.parcelInfo}>
@@ -299,7 +300,7 @@ export default function LiveTrackingScreen() {
             )}
           </>
         )}
-      </View>
+      </GlassCard>
     </SafeAreaView>
   );
 }
@@ -368,7 +369,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   infoPanel: {
-    borderTopWidth: 1,
     padding: 24,
     gap: 20,
   },
