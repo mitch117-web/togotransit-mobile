@@ -105,7 +105,7 @@ export default function LiveTrackingScreen() {
         // historique invalide, on garde la position précédente
       }
     } catch (error) {
-      console.error('Failed to fetch parcel', error);
+      console.warn('Failed to fetch parcel', error);
     } finally {
       setLoading(false);
     }
@@ -125,7 +125,7 @@ export default function LiveTrackingScreen() {
         try {
           await api.post(`/parcels/${parcelId}/location`, { latitude, longitude });
         } catch (error) {
-          console.error('Failed to push location', error);
+          console.warn('Failed to push location', error);
         }
       }
     );

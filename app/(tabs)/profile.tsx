@@ -50,7 +50,7 @@ export default function ProfileScreen() {
       // voyageur assigné comme livreur sur au moins un colis.
       setIsDriver(parcels.some((p: any) => String(p.driverId) === String(user?.id)));
     } catch (error) {
-      console.error('Failed to fetch profile stats', error);
+      console.warn('Failed to fetch profile stats', error);
     }
   };
 

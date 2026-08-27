@@ -32,7 +32,7 @@ export default function ParcelsScreen() {
       const response = await api.get('/parcels', { params });
       setParcels(response.data);
     } catch (error) {
-      console.error('Failed to fetch parcels', error);
+      console.warn('Failed to fetch parcels', error);
     } finally {
       setLoading(false);
       setRefreshing(false);

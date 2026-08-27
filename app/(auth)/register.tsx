@@ -48,6 +48,23 @@ export default function RegisterScreen() {
     const prenom = parts[0] || name.trim();
     const nom = parts.slice(1).join(' ') || parts[0];
 
+    if (prenom.length < 2 || nom.length < 2) {
+      Alert.alert('Nom invalide', 'Entrez votre nom complet (prénom et nom, 2 caractères minimum chacun).');
+      return;
+    }
+    if (phone.trim().length < 8 || !/^[0-9+\s-]+$/.test(phone.trim())) {
+      Alert.alert('Téléphone invalide', 'Le numéro doit contenir au moins 8 chiffres (uniquement chiffres, espaces, "+" ou "-").');
+      return;
+    }
+    if (email.trim() && !/^\S+@\S+\.\S+$/.test(email.trim())) {
+      Alert.alert('Email invalide', 'Vérifiez le format de votre adresse email, ou laissez le champ vide.');
+      return;
+    }
+    if (password.length < 6) {
+      Alert.alert('Mot de passe trop court', 'Le mot de passe doit contenir au moins 6 caractères.');
+      return;
+    }
+
     setLoading(true);
     try {
       await signUp({ nom, prenom, telephone: phone, email: email || undefined, mot_de_passe: password });

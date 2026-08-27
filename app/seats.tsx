@@ -32,7 +32,7 @@ export default function SeatSelectionScreen() {
       const occupied = response.data.map((b: any) => b.seatNumber);
       setOccupiedSeats(occupied);
     } catch (error) {
-      console.error('Failed to fetch occupied seats', error);
+      console.warn('Failed to fetch occupied seats', error);
     } finally {
       setLoading(false);
     }

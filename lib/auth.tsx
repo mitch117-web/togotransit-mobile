@@ -95,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (userData) setUser(JSON.parse(userData));
       if (tokenData) setToken(tokenData);
     } catch (e) {
-      console.error('Failed to load user', e);
+      console.warn('Failed to load user', e);
     } finally {
       setIsLoading(false);
     }
@@ -126,50 +126,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signIn = async (login: string, password: string) => {
-    try {
-      const result = await auth_api.login(login, password);
-      const token = result.token ?? null;
-      const data = result.user;
+    const result = await auth_api.login(login, password);
+    const token = result.token ?? null;
+    const data = result.user;
 
-      const u = normalizeUser(data);
-      if (token) u.token = token;
+    const u = normalizeUser(data);
+    if (token) u.token = token;
 
-      await Promise.all([
-        AsyncStorage.setItem('user', JSON.stringify(u)),
-        ...(token ? [AsyncStorage.setItem('token', token)] : []),
-      ])
-      setUser(u);
-      setToken(token);
-    } catch (error: any) {
-      console.error('Sign in failed', error.response?.data || error.message);
-      throw error;
-    }
+    await Promise.all([
+      AsyncStorage.setItem('user', JSON.stringify(u)),
+      ...(token ? [AsyncStorage.setItem('token', token)] : []),
+    ])
+    setUser(u);
+    setToken(token);
   };
 
   const signUp = async (data: { nom: string; prenom: string; telephone: string; email?: string; mot_de_passe: string; compagnie_id?: number | null }) => {
-    try {
-      const payload = {
-        nom: data.nom,
-        prenom: data.prenom,
-        telephone: data.telephone,
-        email: data.email,
-        mot_de_passe: data.mot_de_passe,
-        compagnie_id: data.compagnie_id ?? null,
-      };
-      const result = await auth_api.register(payload);
-      const token = result.token ?? null;
-      const created = result.user;
-      const u = normalizeUser(created);
-      if (token) u.token = token;
+    const payload = {
+      nom: data.nom,
+      prenom: data.prenom,
+      telephone: data.telephone,
+      email: data.email,
+      mot_de_passe: data.mot_de_passe,
+      compagnie_id: data.compagnie_id ?? null,
+    };
+    const result = await auth_api.register(payload);
+    const token = result.token ?? null;
+    const created = result.user;
+    const u = normalizeUser(created);
+    if (token) u.token = token;
 
-      await AsyncStorage.setItem('user', JSON.stringify(u));
-      if (token) await AsyncStorage.setItem('token', token);
-      setUser(u);
-      setToken(token);
-    } catch (error: any) {
-      console.error('Sign up failed', error.response?.data || error.message);
-      throw error;
-    }
+    await AsyncStorage.setItem('user', JSON.stringify(u));
+    if (token) await AsyncStorage.setItem('token', token);
+    setUser(u);
+    setToken(token);
   };
 
   const signOut = async () => {

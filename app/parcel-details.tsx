@@ -63,7 +63,7 @@ export default function ParcelDetailsScreen() {
 
       setParcel(found);
     } catch (error) {
-      console.error('Failed to fetch parcel details', error);
+      console.warn('Failed to fetch parcel details', error);
     } finally {
       setLoading(false);
       setRefreshing(false);

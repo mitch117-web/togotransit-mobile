@@ -32,7 +32,7 @@ export default function TicketsScreen() {
       const res = await reservationsApi.mesReservations();
       setMesReservations(res.data || []);
     } catch (error) {
-      console.error('Failed to fetch reservations', error);
+      console.warn('Failed to fetch reservations', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
