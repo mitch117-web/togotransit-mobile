@@ -47,6 +47,7 @@ export default function GlassCard({ children, style, borderRadius = 20, forceDar
 const styles = StyleSheet.create({
   base: {
     borderWidth: 1,
+    overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
