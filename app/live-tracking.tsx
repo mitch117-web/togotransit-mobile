@@ -299,8 +299,8 @@ export default function LiveTrackingScreen() {
                 style={[styles.actionButton, { backgroundColor: colors.primary }]}
                 onPress={startTracking}
               >
-                <Navigation size={20} color="white" />
-                <Text style={styles.actionButtonText}>
+                <Navigation size={20} color={colors.onPrimary} />
+                <Text style={[styles.actionButtonText, { color: colors.onPrimary }]}>
                   Partager ma position
                 </Text>
               </TouchableOpacity>

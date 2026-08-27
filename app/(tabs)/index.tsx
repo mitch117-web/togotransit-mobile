@@ -214,29 +214,29 @@ export default function SearchHomeScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-          <View style={[styles.header, { backgroundColor: colors.primary, paddingBottom: 40 }]}>
+          <View style={[styles.header, { backgroundColor: colors.background, paddingBottom: 32 }]}>
             <View style={styles.headerTop}>
               <View>
-                <Text style={[styles.hello, { color: colors.onPrimary + 'cc' }]}>Bonjour,</Text>
-                <Text style={[styles.userName, { color: colors.onPrimary }]}>{userNameLabel} 👋</Text>
+                <Text style={[styles.hello, { color: colors.textSecondary }]}>Bonjour,</Text>
+                <Text style={[styles.userName, { color: colors.text }]}>{userNameLabel} 👋</Text>
               </View>
               <View style={styles.headerRight}>
-                <TouchableOpacity style={[styles.iconBtn, { backgroundColor: colors.onPrimary + '18' }]}>
-                  <Bell size={20} color={colors.onPrimary} />
+                <TouchableOpacity style={[styles.iconBtn, { backgroundColor: colors.surfaceContainerHigh }]}>
+                  <Bell size={20} color={colors.text} />
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => router.push('/(tabs)/profile')}
-                  style={[styles.iconBtn, styles.avatarBtn, { backgroundColor: colors.onPrimary + '22' }]}
+                  style={[styles.iconBtn, styles.avatarBtn, { backgroundColor: colors.primaryContainer }]}
                 >
-                  <User size={18} color={colors.onPrimary} />
+                  <User size={18} color={colors.primary} />
                 </TouchableOpacity>
               </View>
             </View>
 
-            <Text style={[styles.heroTitle, { color: colors.onPrimary }]}>
+            <Text style={[styles.heroTitle, { color: colors.text }]}>
               Où souhaitez-vous aller ?
             </Text>
-            <Text style={[styles.heroSub, { color: colors.onPrimary + 'dd' }]}>
+            <Text style={[styles.heroSub, { color: colors.textSecondary }]}>
               Comparez toutes les compagnies de transport togolaises en une recherche.
             </Text>
           </View>

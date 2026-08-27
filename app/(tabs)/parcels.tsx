@@ -231,8 +231,8 @@ export default function ParcelsScreen() {
             style={[styles.trackButton, { backgroundColor: colors.primary }]}
             onPress={() => router.push(`/live-tracking?parcelId=${item.id}`)}
           >
-            <Navigation size={18} color="white" />
-            <Text style={[styles.trackButtonText, { color: 'white' }]}>
+            <Navigation size={18} color={colors.onPrimary} />
+            <Text style={[styles.trackButtonText, { color: colors.onPrimary }]}>
               Suivi en Direct
             </Text>
           </TouchableOpacity>

@@ -58,12 +58,12 @@ export default function DriverHome({ prenom, compagnieNom, trajets, parcels, ref
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
       >
-        <View style={[styles.header, { backgroundColor: colors.primary }]}>
-          <Text style={[styles.hello, { color: colors.onPrimary + 'cc' }]}>Bonjour,</Text>
-          <Text style={[styles.userName, { color: colors.onPrimary }]}>{prenom} 👋</Text>
-          <View style={[styles.chauffeurBadge, { backgroundColor: colors.onPrimary + '18' }]}>
-            <Bus size={14} color={colors.onPrimary} />
-            <Text style={[styles.chauffeurBadgeText, { color: colors.onPrimary }]}>
+        <View style={[styles.header, { backgroundColor: colors.background }]}>
+          <Text style={[styles.hello, { color: colors.textSecondary }]}>Bonjour,</Text>
+          <Text style={[styles.userName, { color: colors.text }]}>{prenom} 👋</Text>
+          <View style={[styles.chauffeurBadge, { backgroundColor: colors.primaryContainer }]}>
+            <Bus size={14} color={colors.primary} />
+            <Text style={[styles.chauffeurBadgeText, { color: colors.onPrimaryContainer }]}>
               Chauffeur{compagnieNom ? ` — ${compagnieNom}` : ''}
             </Text>
           </View>

@@ -7,6 +7,8 @@ import { ArrowLeft, Camera, CheckCircle2, MapPin, X, User, Phone, Edit3, Image a
 import api from '../lib/api';
 import * as ImagePicker from 'expo-image-picker';
 import SignatureScreen from 'react-native-signature-canvas';
+import GlassCard from '../components/ui/GlassCard';
+import FadeInStagger from '../components/ui/FadeInStagger';
 
 export default function DeliveryConfirmationScreen() {
   const router = useRouter();
@@ -108,7 +110,8 @@ export default function DeliveryConfirmationScreen() {
         </View>
 
         {/* Parcel Brief */}
-        <View style={[styles.briefCard, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + '40' }]}>
+        <FadeInStagger index={0}>
+        <GlassCard style={styles.briefCard}>
           <View style={styles.briefRow}>
             <View style={[styles.iconBox, { backgroundColor: colors.primaryContainer }]}>
               <Package size={20} color={colors.primary} />
@@ -138,7 +141,8 @@ export default function DeliveryConfirmationScreen() {
               <Text style={[styles.briefValue, { color: colors.onSurface }]}>{destination || 'Kpalimé'}</Text>
             </View>
           </View>
-        </View>
+        </GlassCard>
+        </FadeInStagger>
 
         {/* Photo Evidence */}
         <View style={styles.section}>
@@ -190,8 +194,8 @@ export default function DeliveryConfirmationScreen() {
               <View style={[styles.signaturePreview, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
                 <Image source={{ uri: signature }} style={styles.signatureImage} resizeMode="contain" />
                 <View style={[styles.successBadgeOverlay, { backgroundColor: colors.success }]}>
-                  <CheckCircle2 size={16} color="white" />
-                  <Text style={styles.successBadgeText}>SIGNATURE VALIDÉE</Text>
+                  <CheckCircle2 size={16} color={colors.onSuccess} />
+                  <Text style={[styles.successBadgeText, { color: colors.onSuccess }]}>SIGNATURE VALIDÉE</Text>
                 </View>
               </View>
               <TouchableOpacity 
@@ -338,7 +342,6 @@ const styles = StyleSheet.create({
   },
   briefCard: {
     borderRadius: 24,
-    borderWidth: 1,
     padding: 20,
     gap: 12,
     marginBottom: 32,

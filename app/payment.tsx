@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  methodeLogoText: { color: '#fff', fontWeight: '900', fontSize: 16 },
+  methodeLogoText: { color: '#1a1a1a', fontWeight: '900', fontSize: 16 },
   methodeNom: { fontSize: 14, fontWeight: '800' },
   methodeDesc: { fontSize: 12, fontWeight: '500', marginTop: 2 },
   radio: {
