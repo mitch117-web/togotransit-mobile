@@ -16,6 +16,8 @@ import { useAuth } from '../lib/auth';
 import { profile } from '../lib/togotransit-api';
 import { showAlert } from '../lib/alert';
 import { ArrowLeft, User, Mail, Phone, Lock, Bell } from 'lucide-react-native';
+import GlassCard from '../components/ui/GlassCard';
+import FadeInStagger from '../components/ui/FadeInStagger';
 
 export default function EditProfileScreen() {
   const router = useRouter();
@@ -96,7 +98,8 @@ export default function EditProfileScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={[styles.card, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.border }]}>
+        <FadeInStagger index={0}>
+        <GlassCard style={styles.card}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Informations personnelles</Text>
 
           <View style={styles.field}>
@@ -157,9 +160,11 @@ export default function EditProfileScreen() {
               />
             </View>
           </View>
-        </View>
+        </GlassCard>
+        </FadeInStagger>
 
-        <View style={[styles.card, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.border }]}>
+        <FadeInStagger index={1}>
+        <GlassCard style={styles.card}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Préférences</Text>
           <View style={styles.switchRow}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
@@ -173,9 +178,11 @@ export default function EditProfileScreen() {
               thumbColor={notificationsEnabled ? colors.primary : '#f4f3f4'}
             />
           </View>
-        </View>
+        </GlassCard>
+        </FadeInStagger>
 
-        <View style={[styles.card, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.border }]}>
+        <FadeInStagger index={2}>
+        <GlassCard style={styles.card}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Changer le mot de passe</Text>
           <Text style={[styles.hint, { color: colors.textSecondary }]}>
             Laissez vide si vous ne voulez pas changer votre mot de passe.
@@ -210,7 +217,8 @@ export default function EditProfileScreen() {
               />
             </View>
           </View>
-        </View>
+        </GlassCard>
+        </FadeInStagger>
 
         <TouchableOpacity
           style={[styles.saveBtn, { backgroundColor: colors.primary }]}
@@ -249,7 +257,6 @@ const styles = StyleSheet.create({
   content: { padding: 16, gap: 16, paddingBottom: 40 },
   card: {
     borderRadius: 20,
-    borderWidth: 1,
     padding: 16,
     gap: 14,
   },
