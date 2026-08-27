@@ -34,6 +34,8 @@ import {
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 import EmptyState from '../components/EmptyState';
+import GlassCard from '../components/ui/GlassCard';
+import FadeInStagger from '../components/ui/FadeInStagger';
 import { trajetDetails, TrajetDetail as TrajetDetailType } from '../lib/togotransit-api';
 
 const formatPrix = (p: number, devise: string = 'XOF') => {
@@ -197,7 +199,8 @@ export default function TrajetDetailScreen() {
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 180 }}>
         {/* Compagnie card */}
-        <View style={[styles.sectionCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.border }]}>
+        <FadeInStagger index={0}>
+        <GlassCard style={styles.sectionCard}>
           <View style={styles.compagnieRow}>
             {trajet.compagnie?.logo_url ? (
               <Image source={{ uri: trajet.compagnie.logo_url }} style={styles.compLogo} />
@@ -234,10 +237,12 @@ export default function TrajetDetailScreen() {
               </TouchableOpacity>
             ) : null}
           </View>
-        </View>
+        </GlassCard>
+        </FadeInStagger>
 
         {/* Itinéraire & heure */}
-        <View style={[styles.sectionCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.border }]}>
+        <FadeInStagger index={1}>
+        <GlassCard style={styles.sectionCard}>
           <View style={styles.routeContainer}>
             <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 14 }}>
               <View style={styles.routeDots}>
@@ -297,10 +302,12 @@ export default function TrajetDetailScreen() {
               ) : null}
             </View>
           </View>
-        </View>
+        </GlassCard>
+        </FadeInStagger>
 
         {/* Véhicule + places */}
-        <View style={[styles.sectionCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.border }]}>
+        <FadeInStagger index={2}>
+        <GlassCard style={styles.sectionCard}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Véhicule & disponibilité</Text>
 
           {trajet.vehicule ? (
@@ -358,11 +365,13 @@ export default function TrajetDetailScreen() {
                 : `${trajet.places_restantes} place${trajet.places_restantes! > 1 ? 's' : ''} disponible${trajet.places_restantes! > 1 ? 's' : ''}`}
             </Text>
           </View>
-        </View>
+        </GlassCard>
+        </FadeInStagger>
 
         {/* Avis */}
         {trajet.avis && trajet.avis.length > 0 ? (
-          <View style={[styles.sectionCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.border }]}>
+          <FadeInStagger index={3}>
+          <GlassCard style={styles.sectionCard}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>Avis récents</Text>
               <Text style={[styles.voirTout, { color: colors.primary }]}>Tous ({trajet.avis_count ?? trajet.avis.length})</Text>
@@ -387,9 +396,11 @@ export default function TrajetDetailScreen() {
                 </View>
               ))}
             </View>
-          </View>
+          </GlassCard>
+          </FadeInStagger>
         ) : (
-          <View style={[styles.sectionCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.border, opacity: 0.85 }]}>
+          <FadeInStagger index={3}>
+          <GlassCard style={[styles.sectionCard, { opacity: 0.85 }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <View style={[styles.avisEmptyIcon, { backgroundColor: colors.tertiaryContainer }]}>
                 <MessageSquare size={18} color={colors.onTertiaryContainer} />
@@ -398,7 +409,8 @@ export default function TrajetDetailScreen() {
                 Aucun avis pour ce trajet — soyez le premier à laisser un retour après votre voyage !
               </Text>
             </View>
-          </View>
+          </GlassCard>
+          </FadeInStagger>
         )}
 
         {/* Garantie */}
@@ -479,7 +491,6 @@ const styles = StyleSheet.create({
   sectionCard: {
     marginHorizontal: 16,
     marginTop: 14,
-    borderWidth: 1,
     borderRadius: 20,
     padding: 16,
   },
