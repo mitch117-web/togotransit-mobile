@@ -2,11 +2,12 @@ import * as React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform, Image, Dimensions, StatusBar, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
-import { Colors } from '../constants/Colors';
-import { useColorScheme } from 'react-native';
+import { useTheme } from '../lib/theme';
 import { ArrowLeft, Package, MapPin, Clock, Info, CheckCircle2, ChevronRight, Copy, Share2, Navigation, Calendar, User, Phone, Weight, Map as MapIcon, Truck } from 'lucide-react-native';
 import api from '../lib/api';
 import { useAuth } from '../lib/auth';
+import GlassCard from '../components/ui/GlassCard';
+import FadeInStagger from '../components/ui/FadeInStagger';
 
 const { width } = Dimensions.get('window');
 
@@ -14,8 +15,7 @@ export default function ParcelDetailsScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { parcelId } = useLocalSearchParams();
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
+  const { colors } = useTheme();
 
   const [parcel, setParcel] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
@@ -135,7 +135,8 @@ export default function ParcelDetailsScreen() {
         }
       >
         {/* Tracking ID & Status Header */}
-        <View style={[styles.headerCard, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + '40' }]}>
+        <FadeInStagger index={0}>
+        <GlassCard style={styles.headerCard}>
           <View style={styles.headerTop}>
             <View>
               <Text style={[styles.label, { color: colors.onSurfaceVariant }]}>Numéro de suivi</Text>
@@ -164,7 +165,8 @@ export default function ParcelDetailsScreen() {
               <Text style={[styles.routeName, { color: colors.onSurface }]}>{parcel.destination}</Text>
             </View>
           </View>
-        </View>
+        </GlassCard>
+        </FadeInStagger>
 
         {/* Action Buttons */}
         <View style={styles.actionRow}>
@@ -242,7 +244,7 @@ export default function ParcelDetailsScreen() {
               <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Preuve de livraison</Text>
               <CheckCircle2 size={20} color={colors.success} />
             </View>
-            <View style={[styles.podCard, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + '40' }]}>
+            <GlassCard style={styles.podCard}>
               {parcel.pod.photoUrl && (
                 <View style={styles.podSection}>
                   <Text style={[styles.podLabel, { color: colors.onSurfaceVariant }]}>Photo de remise</Text>
@@ -275,7 +277,7 @@ export default function ParcelDetailsScreen() {
                   Livré le {new Date(parcel.pod.deliveredAt || parcel.pod.updatedAt).toLocaleString('fr-FR')}
                 </Text>
               </View>
-            </View>
+            </GlassCard>
           </View>
         )}
 
@@ -292,7 +294,7 @@ export default function ParcelDetailsScreen() {
         {/* Timeline Tracking */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Historique du parcours</Text>
-          <View style={[styles.timelineCard, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + '40' }]}>
+          <GlassCard style={styles.timelineCard}>
             {history.length > 0 ? history.map((item: any, index: number) => {
               const isLatest = index === history.length - 1;
               const isFirst = index === 0;
@@ -330,13 +332,13 @@ export default function ParcelDetailsScreen() {
                 <Text style={[styles.emptyTimelineText, { color: colors.onSurfaceVariant }]}>L'historique sera mis à jour dès que le colis bougera.</Text>
               </View>
             )}
-          </View>
+          </GlassCard>
         </View>
 
         {/* Contacts Details */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Informations de contact</Text>
-          <View style={[styles.contactCard, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + '40' }]}>
+          <GlassCard style={styles.contactCard}>
             <View style={styles.contactItem}>
               <View style={[styles.contactIcon, { backgroundColor: colors.primaryContainer }]}>
                 <User size={18} color={colors.primary} />
@@ -363,13 +365,13 @@ export default function ParcelDetailsScreen() {
                 <Phone size={18} color={colors.onSecondaryContainer} />
               </TouchableOpacity>
             </View>
-          </View>
+          </GlassCard>
         </View>
 
         {/* Parcel Specs */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Spécifications du colis</Text>
-          <View style={[styles.specsCard, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + '40' }]}>
+          <GlassCard style={styles.specsCard}>
             <View style={styles.specItem}>
               <Text style={[styles.specLabel, { color: colors.onSurfaceVariant }]}>Catégorie</Text>
               <Text style={[styles.specValue, { color: colors.onSurface }]}>{parcel.category}</Text>
@@ -388,7 +390,7 @@ export default function ParcelDetailsScreen() {
                 {new Date(parcel.createdAt).toLocaleDateString('fr-FR')}
               </Text>
             </View>
-          </View>
+          </GlassCard>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -406,7 +408,6 @@ const styles = StyleSheet.create({
   },
   headerCard: {
     borderRadius: 24,
-    borderWidth: 1,
     padding: 20,
     marginBottom: 20,
     elevation: 2,
@@ -616,7 +617,6 @@ const styles = StyleSheet.create({
   },
   podCard: {
     borderRadius: 24,
-    borderWidth: 1,
     padding: 20,
   },
   podSection: {
@@ -684,7 +684,6 @@ const styles = StyleSheet.create({
   },
   timelineCard: {
     borderRadius: 24,
-    borderWidth: 1,
     padding: 24,
   },
   timelineItem: {
@@ -749,7 +748,6 @@ const styles = StyleSheet.create({
   },
   contactCard: {
     borderRadius: 24,
-    borderWidth: 1,
     padding: 20,
   },
   contactItem: {
@@ -790,7 +788,6 @@ const styles = StyleSheet.create({
   },
   specsCard: {
     borderRadius: 24,
-    borderWidth: 1,
     padding: 20,
     gap: 16,
   },
