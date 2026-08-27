@@ -91,4 +91,21 @@ api.interceptors.response.use(
   }
 );
 
+/**
+ * Extrait le premier message d'erreur concret d'un objet `details` Zod
+ * (`.format()`), pour transformer un "Données invalides" opaque en message
+ * exploitable côté utilisateur (ex: "telephone: Format téléphone invalide").
+ */
+export function firstValidationError(details: any): string | null {
+  if (!details || typeof details !== 'object') return null;
+  for (const key of Object.keys(details)) {
+    if (key === '_errors') continue;
+    const field = details[key];
+    if (field?._errors?.length) {
+      return `${key} : ${field._errors[0]}`;
+    }
+  }
+  return null;
+}
+
 export default api;

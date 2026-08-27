@@ -16,6 +16,7 @@ import { useRouter, Stack } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { UserPlus, ArrowLeft, User, Mail, Phone, Lock, Eye, EyeOff, ShieldCheck, Check } from 'lucide-react-native';
 import { useAuth } from '../../lib/auth';
+import { firstValidationError } from '../../lib/api';
 import FadeInStagger from '../../components/ui/FadeInStagger';
 import GlassCard from '../../components/ui/GlassCard';
 
@@ -52,7 +53,8 @@ export default function RegisterScreen() {
       await signUp({ nom, prenom, telephone: phone, email: email || undefined, mot_de_passe: password });
       router.replace('/(tabs)');
     } catch (error: any) {
-      Alert.alert('Erreur', error?.data?.error || error?.message || 'Une erreur est survenue. Veuillez réessayer.');
+      const detail = firstValidationError(error?.data?.details);
+      Alert.alert('Erreur', detail || error?.data?.error || error?.message || 'Une erreur est survenue. Veuillez réessayer.');
     } finally {
       setLoading(false);
     }
