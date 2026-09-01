@@ -59,7 +59,12 @@ export default function SearchHomeScreen() {
   const today = new Date();
   const [depart, setDepart] = useState<string>('');
   const [arrivee, setArrivee] = useState<string>('');
-  const [date, setDate] = useState<string>(formatDate(today));
+  // Vide par défaut : la section "Prochains Départs" montre alors tous les
+  // trajets à venir (triés par date la plus proche), pas seulement ceux
+  // d'aujourd'hui — sinon un trajet tout juste créé par un gestionnaire pour
+  // demain (ou plus tard) n'apparaissait jamais sans recherche manuelle. Les
+  // puces de date restent utilisables pour filtrer sur un jour précis.
+  const [date, setDate] = useState<string>('');
 
   const [pickerKind, setPickerKind] = useState<VillePickerKind>(null);
   const [pickerQuery, setPickerQuery] = useState('');
@@ -372,16 +377,20 @@ export default function SearchHomeScreen() {
           <View style={styles.sectionHeader}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Sparkles size={16} color={colors.warning} />
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Suggestions du jour</Text>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                {date ? 'Suggestions du jour' : 'Prochains Départs'}
+              </Text>
             </View>
-            <Text style={[styles.sectionDate, { color: colors.textSecondary }]}>
-              {formatDateLabel(date)}
-            </Text>
+            {date && (
+              <Text style={[styles.sectionDate, { color: colors.textSecondary }]}>
+                {formatDateLabel(date)}
+              </Text>
+            )}
           </View>
 
           {quickLoading ? (
             <View style={{ marginTop: 10, marginHorizontal: 16 }}>
-              <LoadingState label="Recherche des trajets du jour…" />
+              <LoadingState label={date ? "Recherche des trajets du jour…" : "Recherche des prochains trajets…"} />
             </View>
           ) : quickError ? (
             <View style={{ marginHorizontal: 16, marginTop: 10 }}>
@@ -396,8 +405,8 @@ export default function SearchHomeScreen() {
             <View style={{ marginHorizontal: 16, marginTop: 10 }}>
               <ErrorState
                 variant="error"
-                title="Pas encore de trajets pour cette date"
-                description="Ajustez votre destination ou votre date puis lancez une recherche."
+                title={date ? "Pas encore de trajets pour cette date" : "Aucun trajet à venir pour le moment"}
+                description={date ? "Ajustez votre destination ou votre date puis lancez une recherche." : "Réessayez plus tard, ou lancez une recherche par destination."}
               />
             </View>
           ) : (
