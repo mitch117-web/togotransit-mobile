@@ -218,7 +218,7 @@ export default function LiveTrackingScreen() {
           <X size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>
-          Suivi en Direct
+          {isAssignedDriver || hasRealLocation ? 'Suivi en Direct' : 'Itinéraire du Colis'}
         </Text>
         <TouchableOpacity style={styles.refreshButton} onPress={fetchParcel}>
           <RefreshCw size={20} color={colors.primary} />
@@ -309,7 +309,7 @@ export default function LiveTrackingScreen() {
               </View>
               <View style={styles.etaDetails}>
                 <Text style={[styles.etaLabel, { color: colors.textSecondary }]}>
-                  Temps d'arrivée estimé
+                  {hasRealLocation ? "Temps d'arrivée estimé" : "Estimation (itinéraire, sans position live)"}
                 </Text>
                 <Text style={[styles.etaValue, { color: colors.text }]}>
                   {eta}
@@ -362,6 +362,17 @@ export default function LiveTrackingScreen() {
                 <View style={styles.pulseDot} />
                 <Text style={[styles.trackingText, { color: colors.success }]}>
                   Position du chauffeur en direct
+                </Text>
+              </View>
+            )}
+
+            {!isAssignedDriver && !hasRealLocation && (
+              <View style={[styles.trackingActive, { backgroundColor: colors.textSecondary + '15', borderColor: colors.border }]}>
+                <Truck size={16} color={colors.textSecondary} />
+                <Text style={[styles.trackingText, { color: colors.textSecondary }]}>
+                  {parcel.driverId
+                    ? "En attente de la position du chauffeur — itinéraire prévu affiché"
+                    : "Aucun chauffeur assigné pour l'instant — itinéraire prévu affiché"}
                 </Text>
               </View>
             )}
