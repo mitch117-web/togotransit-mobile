@@ -252,6 +252,18 @@ export const auth = {
     const { data } = await api.get('/auth/me');
     return data?.user ?? data?.data ?? data;
   },
+  async demanderCodeOtp(login: string): Promise<{ success: boolean; message: string }> {
+    const payload: any = login.includes('@') ? { email: login } : { telephone: login };
+    const { data } = await api.post('/auth/forgot-password', payload);
+    return data;
+  },
+  async reinitialiserMotDePasse(login: string, code: string, nouveau_mot_de_passe: string): Promise<{ success: boolean; message: string }> {
+    const payload: any = login.includes('@')
+      ? { email: login, code, nouveau_mot_de_passe }
+      : { telephone: login, code, nouveau_mot_de_passe };
+    const { data } = await api.post('/auth/reset-password', payload);
+    return data;
+  },
 };
 
 export const trajetDetails = {
@@ -386,6 +398,28 @@ export const paiements = {
 export const billets = {
   async get(id: number | string): Promise<{ success: boolean; data: BilletDetail }> {
     const { data } = await api.get(`/billets/${id}`);
+    return data;
+  },
+};
+
+export interface NotificationRecord {
+  id: number;
+  userId: number;
+  tripId: number | null;
+  title: string;
+  message: string;
+  type: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export const notifications = {
+  async list(): Promise<NotificationRecord[]> {
+    const { data } = await api.get('/notifications');
+    return data;
+  },
+  async marquerLue(notificationId: number): Promise<NotificationRecord> {
+    const { data } = await api.patch('/notifications', { notificationId, isRead: true });
     return data;
   },
 };

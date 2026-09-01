@@ -59,6 +59,7 @@ export default function PaymentScreen() {
   const [checking, setChecking] = useState(false);
 
   const pollRef = useRef<NodeJS.Timeout | null>(null);
+  const redirectRef = useRef<NodeJS.Timeout | null>(null);
 
   const loadStatut = useCallback(async () => {
     if (isNaN(reservationId)) return;
@@ -69,7 +70,15 @@ export default function PaymentScreen() {
       setStatut(s);
       if (s.reservation.statut === 'confirmee' && s.billets_disponibles.length > 0) {
         if (pollRef.current) clearInterval(pollRef.current);
-        router.replace(`/ticket?billet_id=${s.billets_disponibles[0].id}`);
+        // On laisse le temps au voyageur de voir "Paiement confirmé" avant
+        // d'enchaîner automatiquement sur le billet électronique (QR code) —
+        // sans ce délai, la navigation se faisait avant même que la carte de
+        // confirmation ait pu s'afficher à l'écran.
+        if (!redirectRef.current) {
+          redirectRef.current = setTimeout(() => {
+            router.replace(`/ticket?billet_id=${s.billets_disponibles[0].id}`);
+          }, 1600);
+        }
       }
     } catch (e: any) {
       setError(e);
@@ -82,6 +91,7 @@ export default function PaymentScreen() {
     loadStatut();
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
+      if (redirectRef.current) clearTimeout(redirectRef.current);
     };
   }, [loadStatut]);
 
@@ -190,9 +200,9 @@ export default function PaymentScreen() {
                       <CheckCircle2 size={18} color={colors.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={[styles.statusTitle, { color: colors.text }]}>Paiement confirmé</Text>
+                      <Text style={[styles.statusTitle, { color: colors.text }]}>Paiement réussi ✓</Text>
                       <Text style={[styles.statusDesc, { color: colors.textSecondary }]}>
-                        Votre réservation est maintenant confirmée.
+                        Votre réservation est confirmée. Ouverture de votre billet électronique (QR code)…
                       </Text>
                     </View>
                   </>
@@ -329,9 +339,10 @@ export default function PaymentScreen() {
             {statutFinal === 'confirmee' && statut.billets_disponibles.length > 0 && (
               <View style={{ marginHorizontal: 16, marginTop: 14 }}>
                 <TouchableOpacity
-                  onPress={() =>
-                    router.replace(`/ticket?billet_id=${statut.billets_disponibles[0].id}`)
-                  }
+                  onPress={() => {
+                    if (redirectRef.current) clearTimeout(redirectRef.current);
+                    router.replace(`/ticket?billet_id=${statut.billets_disponibles[0].id}`);
+                  }}
                   activeOpacity={0.85}
                   style={[styles.billetBtn, { backgroundColor: colors.primary }]}
                 >

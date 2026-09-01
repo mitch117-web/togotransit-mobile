@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useTheme } from '../../lib/theme';
 import { Search, Package, MapPin, ChevronRight, RefreshCw, User, Navigation } from 'lucide-react-native';
@@ -64,14 +64,21 @@ export default function ParcelsScreen() {
     fetchParcels(search);
   };
 
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleSearch = (text: string) => {
     setSearch(text);
-    // Debounce search
-    const timeoutId = setTimeout(() => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => {
       fetchParcels(text);
     }, 500);
-    return () => clearTimeout(timeoutId);
   };
+
+  useEffect(() => {
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
+  }, []);
 
   const translateStatus = (status: string) => {
     switch (status) {

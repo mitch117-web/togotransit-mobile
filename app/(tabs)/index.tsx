@@ -34,7 +34,7 @@ import TrajetCard, { Trajet } from '../../components/TrajetCard';
 import DriverHome from '../../components/DriverHome';
 import GlassCard from '../../components/ui/GlassCard';
 import FadeInStagger from '../../components/ui/FadeInStagger';
-import { villes, trajets, Ville, TrajetResult, MonTrajetConduit } from '../../lib/togotransit-api';
+import { villes, trajets, notifications as notificationsApi, Ville, TrajetResult, MonTrajetConduit } from '../../lib/togotransit-api';
 import api from '../../lib/api';
 
 const formatDate = (d: Date) => {
@@ -114,6 +114,25 @@ export default function SearchHomeScreen() {
   React.useEffect(() => {
     checkDriverMode();
   }, [checkDriverMode]);
+
+  // Badge de la cloche : nombre de notifications non lues, rafraîchi
+  // périodiquement (polling) tant que l'écran d'accueil est monté.
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const refreshUnreadCount = React.useCallback(async () => {
+    try {
+      const list = await notificationsApi.list();
+      setUnreadCount(list.filter((n) => !n.isRead).length);
+    } catch (_) {
+      // silencieux : le badge reste simplement à sa dernière valeur connue
+    }
+  }, []);
+
+  React.useEffect(() => {
+    refreshUnreadCount();
+    const interval = setInterval(refreshUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [refreshUnreadCount]);
 
   const onPick = (kind: VillePickerKind) => {
     setPickerKind(kind);
@@ -221,8 +240,16 @@ export default function SearchHomeScreen() {
                 <Text style={[styles.userName, { color: colors.text }]}>{userNameLabel} 👋</Text>
               </View>
               <View style={styles.headerRight}>
-                <TouchableOpacity style={[styles.iconBtn, { backgroundColor: colors.surfaceContainerHigh }]}>
+                <TouchableOpacity
+                  onPress={() => router.push('/notifications')}
+                  style={[styles.iconBtn, { backgroundColor: colors.surfaceContainerHigh }]}
+                >
                   <Bell size={20} color={colors.text} />
+                  {unreadCount > 0 && (
+                    <View style={[styles.notifBadge, { backgroundColor: colors.error, borderColor: colors.background }]}>
+                      <Text style={styles.notifBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                    </View>
+                  )}
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => router.push('/(tabs)/profile')}
@@ -491,8 +518,26 @@ const styles = StyleSheet.create({
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   iconBtn: {
     width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center',
+    position: 'relative',
   },
   avatarBtn: { borderWidth: 1, borderColor: 'transparent' },
+  notifBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  notifBadgeText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '800',
+  },
   heroTitle: { fontSize: 26, fontWeight: '900', marginTop: 10, letterSpacing: -0.3, paddingRight: 40 },
   heroSub: { fontSize: 14, lineHeight: 20, marginTop: 6, paddingRight: 20 },
 

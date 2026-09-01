@@ -38,10 +38,8 @@ function AppContent() {
         <Stack.Screen name="send-parcel" options={{ title: 'Envoyer un colis', presentation: 'card' }} />
         <Stack.Screen name="parcel-details" options={{ title: 'Détails du colis' }} />
         <Stack.Screen name="delivery-confirmation" options={{ title: 'Confirmer la livraison' }} />
-        <Stack.Screen name="booking" options={{ title: 'Réserver un ticket' }} />
-        <Stack.Screen name="seats" options={{ title: 'Choisir vos sièges' }} />
-        <Stack.Screen name="paiement-reussi" options={{ headerShown: false }} />
         <Stack.Screen name="live-tracking" options={{ title: 'Suivi en direct' }} />
+        <Stack.Screen name="notifications" options={{ title: 'Notifications' }} />
       </Stack>
       <AIChatbot />
     </>

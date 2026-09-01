@@ -25,6 +25,7 @@ import {
 } from 'lucide-react-native';
 import FadeInStagger from '../../components/ui/FadeInStagger';
 import GlassCard from '../../components/ui/GlassCard';
+import { auth as authApi } from '../../lib/togotransit-api';
 
 const GOLD = '#fd761a';
 const GOLD_DIM = '#e8650a';
@@ -45,8 +46,7 @@ export default function ForgotPasswordScreen() {
     }
     setLoading(true);
     try {
-      // TODO: endpoint réel de demande d'OTP
-      await new Promise((r) => setTimeout(r, 800));
+      await authApi.demanderCodeOtp(login.trim());
       setStep('otp');
     } catch (e: any) {
       Alert.alert('Erreur', e?.message || "Une erreur est survenue");
@@ -62,8 +62,7 @@ export default function ForgotPasswordScreen() {
     }
     setLoading(true);
     try {
-      // TODO: endpoint réel
-      await new Promise((r) => setTimeout(r, 800));
+      await authApi.reinitialiserMotDePasse(login.trim(), otp.trim(), newPassword);
       Alert.alert('Mot de passe mis à jour', 'Vous pouvez maintenant vous connecter', [
         { text: 'Se connecter', onPress: () => router.replace('/(auth)/login') },
       ]);
