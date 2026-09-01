@@ -164,7 +164,7 @@ export default function ParcelsScreen() {
 
           {!isDelivered && (
             <View style={styles.cardActions}>
-              {item.status === 'IN_TRANSIT' && (
+              {(item.status === 'IN_TRANSIT' || item.status === 'OUT_FOR_DELIVERY') && (
                 <TouchableOpacity
                   style={[styles.trackButton, { backgroundColor: colors.surfaceContainerHigh, marginTop: 0, marginBottom: 10 }]}
                   onPress={() => router.push(`/live-tracking?parcelId=${item.id}`)}
@@ -234,7 +234,7 @@ export default function ParcelsScreen() {
           </View>
         </TouchableOpacity>
 
-        {item.status === 'IN_TRANSIT' && (
+        {(item.status === 'IN_TRANSIT' || item.status === 'OUT_FOR_DELIVERY') && (
           <TouchableOpacity
             style={[styles.trackButton, { backgroundColor: colors.primary }]}
             onPress={() => router.push(`/live-tracking?parcelId=${item.id}`)}

@@ -182,58 +182,38 @@ export default function ParcelDetailsScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Map Visualization (Simulated Live Tracking) */}
+        {/* Suivi : renvoie vers le vrai écran de carte (live-tracking.tsx),
+            qui affiche la position réelle du chauffeur si elle a été
+            partagée, ou l'itinéraire prévu sinon — jamais de position
+            simulée/fictive ici. */}
         {parcel.status !== 'DELIVERED' && (
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
-            <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Localisation en direct</Text>
-            <View style={[styles.liveBadge, { backgroundColor: colors.success + '20' }]}>
-              <View style={[styles.liveDot, { backgroundColor: colors.success }]} />
-              <Text style={[styles.liveText, { color: colors.success }]}>{liveLocation ? 'LIVE' : 'EST.'}</Text>
+            <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Suivi du colis</Text>
+            <View style={[styles.liveBadge, { backgroundColor: (liveLocation ? colors.success : colors.onSurfaceVariant) + '20' }]}>
+              <View style={[styles.liveDot, { backgroundColor: liveLocation ? colors.success : colors.onSurfaceVariant }]} />
+              <Text style={[styles.liveText, { color: liveLocation ? colors.success : colors.onSurfaceVariant }]}>
+                {liveLocation ? 'POSITION EN DIRECT' : 'EN ATTENTE'}
+              </Text>
             </View>
           </View>
-          <View style={[styles.mapContainer, { backgroundColor: colors.surfaceContainerHigh, borderColor: colors.outlineVariant + '40' }]}>
-            {/* Simulated Map Background (Togo Path) */}
-            <View style={styles.simulatedMap}>
-              <View style={[styles.mainRoad, { backgroundColor: colors.outlineVariant + '40' }]} />
-              
-              {/* Origin Point */}
-              <View style={[styles.mapMarker, { top: '80%', left: '45%' }]}>
-                <View style={[styles.markerDot, { backgroundColor: colors.primary }]} />
-                <Text style={[styles.markerLabel, { color: colors.onSurfaceVariant }]}>{parcel.origin}</Text>
-              </View>
-
-              {/* Destination Point */}
-              <View style={[styles.mapMarker, { top: '20%', left: '55%' }]}>
-                <View style={[styles.markerDot, { backgroundColor: colors.secondary }]} />
-                <Text style={[styles.markerLabel, { color: colors.onSurfaceVariant }]}>{parcel.destination}</Text>
-              </View>
-
-              {/* Moving Parcel (Live or Simulated) */}
-              <View style={[styles.truckMarker, { 
-                top: liveLocation 
-                  ? '50%' // Here we could use real math to map GPS to UI 
-                  : parcel.status === 'DELIVERED' ? '20%' : parcel.status === 'IN_TRANSIT' ? '50%' : '80%', 
-                left: liveLocation ? '50%' : parcel.status === 'DELIVERED' ? '55%' : parcel.status === 'IN_TRANSIT' ? '50%' : '45%',
-                backgroundColor: colors.primary,
-                borderWidth: liveLocation ? 3 : 0,
-                borderColor: 'white'
-              }]}>
-                <Truck size={14} color="white" />
-                {liveLocation && (
-                  <View style={[styles.liveIndicator, { backgroundColor: colors.success }]} />
-                )}
-              </View>
+          <TouchableOpacity
+            style={[styles.trackingLinkCard, { backgroundColor: colors.surfaceContainerHigh, borderColor: colors.outlineVariant + '40' }]}
+            onPress={() => router.push(`/live-tracking?parcelId=${parcelId}`)}
+          >
+            <View style={[styles.trackingLinkIcon, { backgroundColor: colors.primaryContainer }]}>
+              <Truck size={20} color={colors.primary} />
             </View>
-
-            <View style={styles.mapOverlay}>
-              <View style={styles.mapActions}>
-                <TouchableOpacity style={[styles.mapActionBtn, { backgroundColor: colors.surface }]}>
-                  <Navigation size={20} color={colors.primary} />
-                </TouchableOpacity>
-              </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.trackingLinkTitle, { color: colors.onSurface }]}>
+                {liveLocation ? 'Position du chauffeur reçue' : "En attente de la position du chauffeur"}
+              </Text>
+              <Text style={[styles.trackingLinkSubtitle, { color: colors.onSurfaceVariant }]}>
+                Voir la carte et l'itinéraire {parcel.origin} → {parcel.destination}
+              </Text>
             </View>
-          </View>
+            <ChevronRight size={20} color={colors.onSurfaceVariant} />
+          </TouchableOpacity>
         </View>
         )}
 
@@ -523,86 +503,29 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 1,
   },
-  mapContainer: {
-    height: 180,
-    borderRadius: 24,
-    borderWidth: 1,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  simulatedMap: {
-    ...StyleSheet.absoluteFillObject,
-    padding: 20,
-  },
-  mainRoad: {
-    position: 'absolute',
-    width: 4,
-    height: '100%',
-    left: '50%',
-    marginLeft: -2,
-    borderRadius: 2,
-  },
-  mapMarker: {
-    position: 'absolute',
+  trackingLinkCard: {
+    flexDirection: 'row',
     alignItems: 'center',
-  },
-  markerDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: 'white',
-  },
-  markerLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    marginTop: 4,
-  },
-  truckMarker: {
-    position: 'absolute',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    borderWidth: 2,
-    borderColor: 'white',
-    zIndex: 10,
-  },
-  liveIndicator: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    borderWidth: 1.5,
-    borderColor: 'white',
-  },
-  mapOverlay: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  mapActions: {
-    position: 'absolute',
-    bottom: 12,
-    right: 12,
-  },
-  mapActionBtn: {
-    width: 40,
-    height: 40,
+    gap: 14,
     borderRadius: 20,
+    borderWidth: 1,
+    padding: 16,
+  },
+  trackingLinkIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+  },
+  trackingLinkTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  trackingLinkSubtitle: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 2,
   },
   parcelPhotoCard: {
     borderRadius: 24,

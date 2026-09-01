@@ -168,7 +168,7 @@ export default function DriverHome({ prenom, compagnieNom, trajets, parcels, ref
                 </Text>
 
                 <View style={styles.cardActionsRow}>
-                  {p.status === 'IN_TRANSIT' && (
+                  {(p.status === 'IN_TRANSIT' || p.status === 'OUT_FOR_DELIVERY') && (
                     <TouchableOpacity
                       style={[styles.secondaryBtn, { backgroundColor: colors.surfaceContainerHigh }]}
                       onPress={() => router.push(`/live-tracking?parcelId=${p.id}`)}
