@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../lib/theme';
-import { Bus, MapPin, Users, Package, ChevronRight, Navigation, Clock } from 'lucide-react-native';
+import { Bus, MapPin, Users, Package, ChevronRight, Navigation, Clock, Truck } from 'lucide-react-native';
 import { MonTrajetConduit } from '../lib/togotransit-api';
+import api from '../lib/api';
 import GlassCard from './ui/GlassCard';
 import FadeInStagger from './ui/FadeInStagger';
 
@@ -46,11 +47,37 @@ const translateStatutColis = (statut: string) => {
   }
 };
 
+const NEXT_STATUS: Record<string, string> = {
+  IN_AGENCY: 'IN_TRANSIT',
+  IN_TRANSIT: 'OUT_FOR_DELIVERY',
+};
+
+const NEXT_STATUS_LABEL: Record<string, string> = {
+  IN_AGENCY: 'Démarrer',
+  IN_TRANSIT: 'En livraison',
+};
+
 export default function DriverHome({ prenom, compagnieNom, trajets, parcels, refreshing, onRefresh }: DriverHomeProps) {
   const router = useRouter();
   const { colors } = useTheme();
+  const [updatingId, setUpdatingId] = React.useState<number | null>(null);
 
   const colisActifs = parcels.filter((p) => p.status !== 'DELIVERED');
+
+  const advanceStatus = async (parcelId: number) => {
+    const current = parcels.find((p) => p.id === parcelId)?.status;
+    const next = current ? NEXT_STATUS[current] : undefined;
+    if (!next) return;
+    setUpdatingId(parcelId);
+    try {
+      await api.post(`/parcels/${parcelId}/status`, { status: next });
+      onRefresh();
+    } catch (error) {
+      Alert.alert('Erreur', "Impossible de mettre à jour le statut du colis.");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
@@ -168,6 +195,22 @@ export default function DriverHome({ prenom, compagnieNom, trajets, parcels, ref
                 </Text>
 
                 <View style={styles.cardActionsRow}>
+                  {NEXT_STATUS[p.status] && (
+                    <TouchableOpacity
+                      style={[styles.secondaryBtn, { backgroundColor: colors.surfaceContainerHigh }]}
+                      onPress={() => advanceStatus(p.id)}
+                      disabled={updatingId === p.id}
+                    >
+                      {updatingId === p.id ? (
+                        <ActivityIndicator size="small" color={colors.primary} />
+                      ) : (
+                        <>
+                          <Truck size={16} color={colors.primary} />
+                          <Text style={[styles.secondaryBtnText, { color: colors.primary }]}>{NEXT_STATUS_LABEL[p.status]}</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  )}
                   {(p.status === 'IN_TRANSIT' || p.status === 'OUT_FOR_DELIVERY') && (
                     <TouchableOpacity
                       style={[styles.secondaryBtn, { backgroundColor: colors.surfaceContainerHigh }]}

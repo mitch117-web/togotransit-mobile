@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useTheme } from '../../lib/theme';
-import { Search, Package, MapPin, ChevronRight, RefreshCw, User, Navigation } from 'lucide-react-native';
+import { Search, Package, MapPin, ChevronRight, RefreshCw, User, Navigation, Truck } from 'lucide-react-native';
 import { useAuth } from '../../lib/auth';
 import api from '../../lib/api';
 import { useRouter } from 'expo-router';
@@ -15,6 +15,7 @@ export default function ParcelsScreen() {
   const [parcels, setParcels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [updatingId, setUpdatingId] = useState<number | null>(null);
   const { colors } = useTheme();
 
   useEffect(() => {
@@ -62,6 +63,23 @@ export default function ParcelsScreen() {
   const onRefresh = () => {
     setRefreshing(true);
     fetchParcels(search);
+  };
+
+  const NEXT_STATUS: Record<string, string> = { IN_AGENCY: 'IN_TRANSIT', IN_TRANSIT: 'OUT_FOR_DELIVERY' };
+  const NEXT_STATUS_LABEL: Record<string, string> = { IN_AGENCY: 'Démarrer le transport', IN_TRANSIT: 'Marquer en livraison' };
+
+  const advanceStatus = async (item: any) => {
+    const next = NEXT_STATUS[item.status];
+    if (!next) return;
+    setUpdatingId(item.id);
+    try {
+      await api.post(`/parcels/${item.id}/status`, { status: next });
+      fetchParcels(search);
+    } catch (error) {
+      Alert.alert('Erreur', "Impossible de mettre à jour le statut du colis.");
+    } finally {
+      setUpdatingId(null);
+    }
   };
 
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -164,6 +182,22 @@ export default function ParcelsScreen() {
 
           {!isDelivered && (
             <View style={styles.cardActions}>
+              {NEXT_STATUS[item.status] && (
+                <TouchableOpacity
+                  style={[styles.trackButton, { backgroundColor: colors.surfaceContainerHigh, marginTop: 0, marginBottom: 10 }]}
+                  onPress={() => advanceStatus(item)}
+                  disabled={updatingId === item.id}
+                >
+                  {updatingId === item.id ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : (
+                    <>
+                      <Truck size={18} color={colors.primary} />
+                      <Text style={[styles.trackButtonText, { color: colors.primary }]}>{NEXT_STATUS_LABEL[item.status]}</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              )}
               {(item.status === 'IN_TRANSIT' || item.status === 'OUT_FOR_DELIVERY') && (
                 <TouchableOpacity
                   style={[styles.trackButton, { backgroundColor: colors.surfaceContainerHigh, marginTop: 0, marginBottom: 10 }]}
