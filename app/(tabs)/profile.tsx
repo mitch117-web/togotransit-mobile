@@ -21,7 +21,7 @@ export default function ProfileScreen() {
   const { user, signOut, updateUser } = useAuth();
   const { colors, theme, toggleTheme } = useTheme();
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(user?.notifications_enabled ?? true);
-  const [stats, setStats] = React.useState({ tickets: 0, parcels: 0, rating: 4.9 });
+  const [stats, setStats] = React.useState({ tickets: 0, parcels: 0 });
   const [isDriver, setIsDriver] = React.useState(false);
 
   React.useEffect(() => {
@@ -44,7 +44,6 @@ export default function ProfileScreen() {
       setStats({
         tickets: bookingsRes.data?.length || 0,
         parcels: parcels.length,
-        rating: 4.9,
       });
       // Être "chauffeur" n'est pas un rôle à part dans ce système — c'est un
       // voyageur assigné comme livreur sur au moins un colis.
@@ -95,7 +94,7 @@ export default function ProfileScreen() {
       items: [
         { icon: theme === 'dark' ? Moon : Sun, label: 'Mode sombre', color: theme === 'dark' ? '#f59e0b' : colors.primary, isThemeSwitch: true },
         { icon: Bell, label: 'Notifications', color: '#805ad5', hasSwitch: true },
-        { icon: Shield, label: 'Sécurité et Confidentialité', color: '#3182ce', action: () => router.push('/edit-profile') },
+        { icon: Shield, label: 'Changer le mot de passe', color: '#3182ce', action: () => router.push('/edit-profile') },
       ]
     },
     {
@@ -136,13 +135,9 @@ export default function ProfileScreen() {
           <Text style={[styles.statValue, { color: colors.text }]}>{stats.tickets}</Text>
           <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Trajets</Text>
         </View>
-        <View style={[styles.statItem, { borderRightColor: colors.border + '40' }]}>
+        <View style={styles.statItem}>
           <Text style={[styles.statValue, { color: colors.text }]}>{stats.parcels}</Text>
           <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Colis</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={[styles.statValue, { color: colors.text }]}>{stats.rating}</Text>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Note</Text>
         </View>
       </GlassCard>
 

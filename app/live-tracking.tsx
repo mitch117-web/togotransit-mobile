@@ -31,6 +31,16 @@ const Polyline = Platform.OS !== 'web'
   ? lazy(() => import('react-native-maps').then(mod => ({ default: mod.Polyline })))
   : () => null;
 
+const translateParcelStatus = (status?: string) => {
+  switch (status) {
+    case 'IN_AGENCY': return 'En agence';
+    case 'IN_TRANSIT': return 'En transit';
+    case 'OUT_FOR_DELIVERY': return 'En livraison';
+    case 'DELIVERED': return 'Livré';
+    default: return status || '';
+  }
+};
+
 // Coordonnées réelles (approximatives) des villes togolaises utilisées par
 // l'app — permet de tracer un itinéraire départ → destination qui suit la
 // vraie géographie du pays plutôt qu'une ligne arbitraire. Le pays n'a pas
@@ -61,6 +71,30 @@ const getCityCoord = (nom?: string) => {
   return TOGO_CITY_COORDS[key] || TOGO_CITY_COORDS['lomé'];
 };
 
+// Distance à vol d'oiseau (formule de haversine) entre deux coordonnées GPS,
+// en kilomètres.
+const haversineKm = (a: { latitude: number; longitude: number }, b: { latitude: number; longitude: number }) => {
+  const R = 6371;
+  const dLat = ((b.latitude - a.latitude) * Math.PI) / 180;
+  const dLon = ((b.longitude - a.longitude) * Math.PI) / 180;
+  const lat1 = (a.latitude * Math.PI) / 180;
+  const lat2 = (b.latitude * Math.PI) / 180;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h))
+};
+
+// Estimation réelle (distance haversine / vitesse moyenne route togolaise
+// ~50 km/h) — pas de simulation, un vrai calcul à partir des coordonnées
+// connues du trajet.
+const AVG_SPEED_KMH = 50
+const formatEta = (km: number) => {
+  const minutes = Math.max(5, Math.round((km / AVG_SPEED_KMH) * 60))
+  if (minutes < 60) return `${minutes} min`
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  return m > 0 ? `${h} h ${m} min` : `${h} h`
+};
+
 // Région par défaut couvrant tout le Togo, affichée le temps que la carte
 // se cadre précisément sur l'itinéraire réel (voir fitToCoordinates).
 const TOGO_DEFAULT_REGION = { latitude: 8.2, longitude: 1.0, latitudeDelta: 6.5, longitudeDelta: 3.2 };
@@ -75,7 +109,6 @@ export default function LiveTrackingScreen() {
   const [parcel, setParcel] = useState<any>(null);
   const [driverLocation, setDriverLocation] = useState<any>(null);
   const [hasRealLocation, setHasRealLocation] = useState(false);
-  const [eta, setEta] = useState('25 min');
   const watchSubscription = React.useRef<any>(null);
   const mapRef = React.useRef<any>(null);
 
@@ -84,6 +117,12 @@ export default function LiveTrackingScreen() {
   const originCoord = getCityCoord(parcel?.origin);
   const destCoord = getCityCoord(parcel?.destination);
   const routeCoordinates = [originCoord, destCoord];
+
+  // ETA recalculée à partir de la vraie position (si connue) ou du départ,
+  // jamais figée.
+  const eta = parcel
+    ? formatEta(haversineKm(hasRealLocation && driverLocation ? driverLocation : originCoord, destCoord))
+    : '—';
 
   useEffect(() => {
     if (!parcelId) return;
@@ -259,7 +298,7 @@ export default function LiveTrackingScreen() {
                   {parcel.trackingId}
                 </Text>
                 <Text style={[styles.parcelStatus, { color: colors.primary }]}>
-                  En Transit
+                  {translateParcelStatus(parcel.status)}
                 </Text>
               </View>
             </View>

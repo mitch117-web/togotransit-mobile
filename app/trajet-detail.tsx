@@ -9,6 +9,8 @@ import {
   Image,
   Pressable,
   Share,
+  Linking,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -175,6 +177,13 @@ export default function TrajetDetailScreen() {
     router.push(`/reservation?id=${trajetId}&places=${nbPlaces}`);
   };
 
+  const callPhone = (phone?: string | null) => {
+    if (!phone) return;
+    Linking.openURL(`tel:${phone.replace(/\s+/g, '')}`).catch(() => {
+      Alert.alert('Erreur', "Impossible d'ouvrir l'application téléphone.");
+    });
+  };
+
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={[styles.headerBar, { backgroundColor: colors.surface }]}>
@@ -232,6 +241,7 @@ export default function TrajetDetailScreen() {
               <TouchableOpacity
                 style={[styles.phoneBtn, { backgroundColor: colors.secondaryContainer }]}
                 hitSlop={10}
+                onPress={() => callPhone(trajet.compagnie?.telephone)}
               >
                 <Phone size={18} color={colors.onSecondaryContainer} />
               </TouchableOpacity>
@@ -345,7 +355,11 @@ export default function TrajetDetailScreen() {
                 <Text style={[styles.chauffeurNom, { color: colors.text }]}>{trajet.chauffeur.nom}</Text>
               </View>
               {trajet.chauffeur.telephone ? (
-                <TouchableOpacity style={[styles.smallPhone, { backgroundColor: colors.secondaryContainer }]} hitSlop={8}>
+                <TouchableOpacity
+                  style={[styles.smallPhone, { backgroundColor: colors.secondaryContainer }]}
+                  hitSlop={8}
+                  onPress={() => callPhone(trajet.chauffeur?.telephone)}
+                >
                   <Phone size={15} color={colors.onSecondaryContainer} />
                 </TouchableOpacity>
               ) : null}

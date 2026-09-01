@@ -37,6 +37,24 @@ const formatPrix = (n: number) => {
   }
 };
 
+const translatePaiementStatut = (statut?: string) => {
+  switch (statut) {
+    case 'reussi': return 'Réussi';
+    case 'echoue': return 'Échoué';
+    case 'en_attente': return 'En attente';
+    default: return statut || '';
+  }
+};
+
+const translateBilletStatut = (statut?: string) => {
+  switch (statut) {
+    case 'valide': return 'Valide';
+    case 'utilise': return 'Utilisé';
+    case 'annule': return 'Annulé';
+    default: return statut || '';
+  }
+};
+
 const formatDateBillet = (iso?: string) => {
   if (!iso) return '';
   try {
@@ -295,7 +313,7 @@ export default function TicketDetailScreen() {
                         {String(p.methode).toUpperCase()}
                       </Text>
                       <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-                        {p.statut} {p.reference_transaction ? `· ${p.reference_transaction}` : ''}
+                        {translatePaiementStatut(p.statut)} {p.reference_transaction ? `· ${p.reference_transaction}` : ''}
                       </Text>
                     </View>
                     <Text style={[styles.summaryVal, { color: colors.text }]}>
@@ -330,7 +348,7 @@ export default function TicketDetailScreen() {
                         Voir le billet {b.numero_billet}
                       </Text>
                       <Text style={[styles.billetRowStatus, { color: colors.onPrimaryContainer }]}>
-                        Statut : {b.statut}
+                        Statut : {translateBilletStatut(b.statut)}
                       </Text>
                     </View>
                     <ChevronRight size={18} color={colors.onPrimaryContainer} />

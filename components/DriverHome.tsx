@@ -40,6 +40,7 @@ const translateStatutColis = (statut: string) => {
   switch (statut) {
     case 'IN_AGENCY': return 'En agence';
     case 'IN_TRANSIT': return 'En transit';
+    case 'OUT_FOR_DELIVERY': return 'En livraison';
     case 'DELIVERED': return 'Livré';
     default: return statut;
   }

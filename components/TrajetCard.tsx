@@ -18,6 +18,7 @@ export interface Trajet {
   ville_arrivee: { id?: number; nom: string; region?: string | null };
   heure_depart: string;
   date_depart: string;
+  date_arrivee_estimee?: string | null;
   duree_libelle?: string | null;
   duree_minutes?: number | null;
   prix: number;
@@ -148,7 +149,14 @@ export const TrajetCard: React.FC<Props> = ({ trajet, onPress, compact }) => {
         <View style={[styles.villeCol, { alignItems: 'flex-end' }]}>
           <View style={[styles.timeDot, { backgroundColor: colors.secondary }]} />
           <View style={{ flex: 1, alignItems: 'flex-end' }}>
-            <Text style={[styles.heure, { color: colors.text }]}>—</Text>
+            <Text style={[styles.heure, { color: colors.text }]}>
+              {trajet.date_arrivee_estimee
+                ? (() => {
+                    const d = new Date(trajet.date_arrivee_estimee);
+                    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+                  })()
+                : '—'}
+            </Text>
             <Text style={[styles.ville, { color: colors.text }]} numberOfLines={1}>
               {trajet.ville_arrivee.nom}
             </Text>
