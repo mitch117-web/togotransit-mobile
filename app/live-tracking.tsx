@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Platform, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
@@ -9,27 +9,25 @@ import api from '../lib/api';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import GlassCard from '../components/ui/GlassCard';
 
-// Charger react-native-maps seulement sur mobile
-const MapView = Platform.OS !== 'web' 
-  ? lazy(() => import('react-native-maps').then(mod => ({ default: mod.default })))
-  : ({ style }: { style?: any }) => {
-      const { colors } = useTheme();
-      return (
-        <View style={[style, styles.webMapPlaceholder, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.webMapText, { color: colors.text }]}>
-            Carte disponible sur mobile uniquement
-          </Text>
-        </View>
-      );
-    };
+// react-native-maps est désactivé sur toutes les plateformes pour le moment :
+// la vraie MapView Android nécessite une clé Google Maps
+// (app.json -> android.config.googleMaps.apiKey) qui n'est pas configurée,
+// et son absence fait planter l'appli dès que cet écran s'ouvre sur un vrai
+// appareil. Tant qu'aucune clé n'est ajoutée, on affiche un substitut inerte
+// — jamais d'import, direct ou paresseux, du module natif.
+const MapView = ({ style }: { style?: any }) => {
+  const { colors } = useTheme();
+  return (
+    <View style={[style, styles.webMapPlaceholder, { backgroundColor: colors.surface }]}>
+      <Text style={[styles.webMapText, { color: colors.text }]}>
+        Carte indisponible pour le moment
+      </Text>
+    </View>
+  );
+};
 
-const Marker = Platform.OS !== 'web'
-  ? lazy(() => import('react-native-maps').then(mod => ({ default: mod.Marker })))
-  : () => null;
-
-const Polyline = Platform.OS !== 'web'
-  ? lazy(() => import('react-native-maps').then(mod => ({ default: mod.Polyline })))
-  : () => null;
+const Marker = () => null;
+const Polyline = () => null;
 
 const translateParcelStatus = (status?: string) => {
   switch (status) {
@@ -227,62 +225,7 @@ export default function LiveTrackingScreen() {
 
       {/* Map Section */}
       <View style={styles.mapContainer}>
-        {Platform.OS !== 'web' ? (
-          <Suspense fallback={<ActivityIndicator size="large" color={colors.primary} />}>
-            <MapView
-              ref={mapRef}
-              style={styles.map}
-              initialRegion={TOGO_DEFAULT_REGION}
-              showsUserLocation={isAssignedDriver}
-              showsMyLocationButton={isAssignedDriver}
-            >
-              {driverLocation && (
-                <Marker
-                  coordinate={driverLocation}
-                  title="Votre chauffeur"
-                  description="En route vers vous"
-                >
-                  <View style={[styles.driverMarker, { backgroundColor: colors.primary }]}>
-                    <Truck size={20} color="white" />
-                  </View>
-                </Marker>
-              )}
-
-              {parcel && (
-                <>
-                  <Marker
-                    coordinate={routeCoordinates[0]}
-                    title="Point de départ"
-                    description={parcel.origin}
-                  >
-                    <View style={[styles.originMarker, { backgroundColor: colors.secondary }]}>
-                      <MapPin size={16} color="white" />
-                    </View>
-                  </Marker>
-
-                  <Marker
-                    coordinate={routeCoordinates[routeCoordinates.length - 1]}
-                    title="Destination"
-                    description={parcel.destination}
-                  >
-                    <View style={[styles.destinationMarker, { backgroundColor: colors.success }]}>
-                      <Package size={16} color="white" />
-                    </View>
-                  </Marker>
-                </>
-              )}
-
-              <Polyline
-                coordinates={routeCoordinates}
-                strokeColor={colors.primary}
-                strokeWidth={3}
-                lineDashPattern={[5, 5]}
-              />
-            </MapView>
-          </Suspense>
-        ) : (
-          <MapView style={styles.map} />
-        )}
+        <MapView style={styles.map} />
       </View>
 
       {/* Bottom Info Panel */}
