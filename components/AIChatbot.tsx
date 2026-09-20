@@ -71,7 +71,11 @@ export default function AIChatbot() {
     setIsLoading(true)
 
     try {
-      const response = await api.post('/ai/chat', { message: contenu })
+      // Inclut les derniers échanges pour permettre les questions de suivi
+      // ("et pour demain ?") sans que l'utilisateur répète le contexte —
+      // le backend s'en sert quand l'IA générative est disponible.
+      const historique = messages.slice(-6).map((m) => ({ role: m.role, content: m.content }))
+      const response = await api.post('/ai/chat', { message: contenu, history: historique })
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',

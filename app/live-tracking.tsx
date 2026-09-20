@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Platform, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
 import { useTheme } from '../lib/theme';
 import { useAuth } from '../lib/auth';
@@ -9,25 +10,62 @@ import api from '../lib/api';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import GlassCard from '../components/ui/GlassCard';
 
-// react-native-maps est désactivé sur toutes les plateformes pour le moment :
-// la vraie MapView Android nécessite une clé Google Maps
-// (app.json -> android.config.googleMaps.apiKey) qui n'est pas configurée,
-// et son absence fait planter l'appli dès que cet écran s'ouvre sur un vrai
-// appareil. Tant qu'aucune clé n'est ajoutée, on affiche un substitut inerte
-// — jamais d'import, direct ou paresseux, du module natif.
-const MapView = ({ style }: { style?: any }) => {
-  const { colors } = useTheme();
-  return (
-    <View style={[style, styles.webMapPlaceholder, { backgroundColor: colors.surface }]}>
-      <Text style={[styles.webMapText, { color: colors.text }]}>
-        Carte indisponible pour le moment
-      </Text>
-    </View>
-  );
-};
+// react-native-maps (MapView native) a été retiré : la vraie MapView Android
+// nécessite une clé Google Maps (app.json -> android.config.googleMaps.apiKey)
+// qui n'est pas configurée, et son absence faisait planter l'appli dès que cet
+// écran s'ouvrait sur un vrai appareil. On affiche à la place une carte
+// Leaflet/OpenStreetMap (gratuite, sans clé) dans une WebView — react-native-webview
+// est déjà une dépendance du projet, donc aucune reconstruction native n'est
+// nécessaire et ça fonctionne aussi bien dans Expo Go que dans un build EAS.
+const MAP_HTML = `<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    html, body, #map { height: 100%; margin: 0; padding: 0; background: #e5e7eb; }
+    .tt-dot { border-radius: 50%; border: 3px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.4); }
+    .tt-driver { border-radius: 50%; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    var map = L.map('map', { zoomControl: false, attributionControl: false }).setView([8.2, 1.0], 7);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
 
-const Marker = () => null;
-const Polyline = () => null;
+    var originIcon = L.divIcon({ className: '', iconSize: [16, 16], html: '<div class="tt-dot" style="width:16px;height:16px;background:#3b82f6"></div>' });
+    var destIcon = L.divIcon({ className: '', iconSize: [16, 16], html: '<div class="tt-dot" style="width:16px;height:16px;background:#10b981"></div>' });
+    var driverIcon = L.divIcon({ className: '', iconSize: [26, 26], html: '<div class="tt-driver" style="width:26px;height:26px;background:#f97316">🚌</div>' });
+
+    var originMarker = null, destMarker = null, driverMarker = null, routeLine = null;
+
+    function updateMap(origin, dest, driver) {
+      if (originMarker) map.removeLayer(originMarker);
+      if (destMarker) map.removeLayer(destMarker);
+      if (driverMarker) map.removeLayer(driverMarker);
+      if (routeLine) map.removeLayer(routeLine);
+
+      originMarker = L.marker([origin.latitude, origin.longitude], { icon: originIcon }).addTo(map);
+      destMarker = L.marker([dest.latitude, dest.longitude], { icon: destIcon }).addTo(map);
+
+      var points = [[origin.latitude, origin.longitude]];
+      if (driver) {
+        driverMarker = L.marker([driver.latitude, driver.longitude], { icon: driverIcon }).addTo(map);
+        points.push([driver.latitude, driver.longitude]);
+      }
+      points.push([dest.latitude, dest.longitude]);
+
+      routeLine = L.polyline(points, { color: '#f97316', weight: 3, opacity: 0.85, dashArray: driver ? null : '6 8' }).addTo(map);
+      map.fitBounds(L.latLngBounds(points), { padding: [48, 48] });
+    }
+
+    window.updateMap = updateMap;
+    window.ReactNativeWebView && window.ReactNativeWebView.postMessage('ready');
+  </script>
+</body>
+</html>`;
 
 const translateParcelStatus = (status?: string) => {
   switch (status) {
@@ -93,10 +131,6 @@ const formatEta = (km: number) => {
   return m > 0 ? `${h} h ${m} min` : `${h} h`
 };
 
-// Région par défaut couvrant tout le Togo, affichée le temps que la carte
-// se cadre précisément sur l'itinéraire réel (voir fitToCoordinates).
-const TOGO_DEFAULT_REGION = { latitude: 8.2, longitude: 1.0, latitudeDelta: 6.5, longitudeDelta: 3.2 };
-
 export default function LiveTrackingScreen() {
   const { colors } = useTheme();
   const { user } = useAuth();
@@ -107,14 +141,14 @@ export default function LiveTrackingScreen() {
   const [parcel, setParcel] = useState<any>(null);
   const [driverLocation, setDriverLocation] = useState<any>(null);
   const [hasRealLocation, setHasRealLocation] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
   const watchSubscription = React.useRef<any>(null);
-  const mapRef = React.useRef<any>(null);
+  const webviewRef = useRef<WebView>(null);
 
   const isAssignedDriver = !!(user?.id && parcel?.driverId && user.id === parcel.driverId);
 
   const originCoord = getCityCoord(parcel?.origin);
   const destCoord = getCityCoord(parcel?.destination);
-  const routeCoordinates = [originCoord, destCoord];
 
   // ETA recalculée à partir de la vraie position (si connue) ou du départ,
   // jamais figée.
@@ -138,18 +172,20 @@ export default function LiveTrackingScreen() {
   // Pas de simulation de déplacement : tant qu'aucune position GPS réelle
   // n'a été partagée par le chauffeur, on affiche simplement l'itinéraire
   // (départ → destination), cadré proprement sur la carte. Si une position
-  // réelle arrive, elle est intégrée au cadrage.
+  // réelle arrive, elle est intégrée au cadrage. La carte Leaflet vit dans
+  // une WebView chargée une seule fois : on met à jour ses marqueurs via
+  // injectJavaScript plutôt que de recharger le HTML à chaque changement.
   useEffect(() => {
-    if (!parcel) return;
-    const points = hasRealLocation && driverLocation
-      ? [originCoord, driverLocation, destCoord]
-      : [originCoord, destCoord];
-    mapRef.current?.fitToCoordinates?.(points, {
-      edgePadding: { top: 80, right: 80, bottom: 80, left: 80 },
-      animated: true,
-    });
+    if (!parcel || !mapReady) return;
+    const driver = hasRealLocation && driverLocation ? driverLocation : null;
+    const js = `updateMap(${JSON.stringify(originCoord)}, ${JSON.stringify(destCoord)}, ${JSON.stringify(driver)}); true;`;
+    webviewRef.current?.injectJavaScript(js);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [parcel, hasRealLocation, driverLocation]);
+  }, [parcel, mapReady, hasRealLocation, driverLocation, originCoord.latitude, originCoord.longitude, destCoord.latitude, destCoord.longitude]);
+
+  const handleMapMessage = useCallback(() => {
+    setMapReady(true);
+  }, []);
 
   const fetchParcel = async () => {
     try {
@@ -225,7 +261,28 @@ export default function LiveTrackingScreen() {
 
       {/* Map Section */}
       <View style={styles.mapContainer}>
-        <MapView style={styles.map} />
+        <WebView
+          ref={webviewRef}
+          source={{ html: MAP_HTML }}
+          style={styles.map}
+          originWhitelist={['*']}
+          javaScriptEnabled
+          domStorageEnabled
+          onMessage={handleMapMessage}
+          startInLoadingState
+          renderLoading={() => (
+            <View style={[styles.map, styles.webMapPlaceholder, { backgroundColor: colors.surface }]}>
+              <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+          )}
+          renderError={() => (
+            <View style={[styles.map, styles.webMapPlaceholder, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.webMapText, { color: colors.text }]}>
+                Carte indisponible — vérifiez votre connexion internet
+              </Text>
+            </View>
+          )}
+        />
       </View>
 
       {/* Bottom Info Panel */}
