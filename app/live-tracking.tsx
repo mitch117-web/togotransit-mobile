@@ -5,7 +5,7 @@ import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
 import { useTheme } from '../lib/theme';
 import { useAuth } from '../lib/auth';
-import { MapPin, Navigation, Clock, X, RefreshCw, Package, Truck } from 'lucide-react-native';
+import { MapPin, Navigation, Clock, X, RefreshCw, Package, Truck, Locate } from 'lucide-react-native';
 import api from '../lib/api';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import GlassCard from '../components/ui/GlassCard';
@@ -41,7 +41,14 @@ const MAP_HTML = `<!DOCTYPE html>
 
     var originMarker = null, destMarker = null, driverMarker = null, routeLine = null;
 
-    function updateMap(origin, dest, driver) {
+    var lastPoints = null;
+
+    // Le paramètre fit ne doit être vrai qu'au premier appel (ou sur demande
+    // explicite via recenter()) : le suivi relance updateMap toutes les 5-8s
+    // pour déplacer le chauffeur, et refaire un fitBounds à chaque fois
+    // annulait tout zoom/pan manuel de l'utilisateur — il se faisait
+    // recentrer de force en boucle.
+    function updateMap(origin, dest, driver, fit) {
       if (originMarker) map.removeLayer(originMarker);
       if (destMarker) map.removeLayer(destMarker);
       if (driverMarker) map.removeLayer(driverMarker);
@@ -56,12 +63,22 @@ const MAP_HTML = `<!DOCTYPE html>
         points.push([driver.latitude, driver.longitude]);
       }
       points.push([dest.latitude, dest.longitude]);
+      lastPoints = points;
 
       routeLine = L.polyline(points, { color: '#f97316', weight: 3, opacity: 0.85, dashArray: driver ? null : '6 8' }).addTo(map);
-      map.fitBounds(L.latLngBounds(points), { padding: [48, 48] });
+      if (fit) {
+        map.fitBounds(L.latLngBounds(points), { padding: [48, 48] });
+      }
+    }
+
+    function recenter() {
+      if (lastPoints) {
+        map.fitBounds(L.latLngBounds(lastPoints), { padding: [48, 48] });
+      }
     }
 
     window.updateMap = updateMap;
+    window.recenter = recenter;
     window.ReactNativeWebView && window.ReactNativeWebView.postMessage('ready');
   </script>
 </body>
@@ -144,6 +161,7 @@ export default function LiveTrackingScreen() {
   const [mapReady, setMapReady] = useState(false);
   const watchSubscription = React.useRef<any>(null);
   const webviewRef = useRef<WebView>(null);
+  const hasFittedRef = useRef(false);
 
   const isAssignedDriver = !!(user?.id && parcel?.driverId && user.id === parcel.driverId);
 
@@ -178,13 +196,19 @@ export default function LiveTrackingScreen() {
   useEffect(() => {
     if (!parcel || !mapReady) return;
     const driver = hasRealLocation && driverLocation ? driverLocation : null;
-    const js = `updateMap(${JSON.stringify(originCoord)}, ${JSON.stringify(destCoord)}, ${JSON.stringify(driver)}); true;`;
+    const fit = !hasFittedRef.current;
+    hasFittedRef.current = true;
+    const js = `updateMap(${JSON.stringify(originCoord)}, ${JSON.stringify(destCoord)}, ${JSON.stringify(driver)}, ${fit}); true;`;
     webviewRef.current?.injectJavaScript(js);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parcel, mapReady, hasRealLocation, driverLocation, originCoord.latitude, originCoord.longitude, destCoord.latitude, destCoord.longitude]);
 
   const handleMapMessage = useCallback(() => {
     setMapReady(true);
+  }, []);
+
+  const recenterMap = useCallback(() => {
+    webviewRef.current?.injectJavaScript('recenter(); true;');
   }, []);
 
   const fetchParcel = async () => {
@@ -283,6 +307,15 @@ export default function LiveTrackingScreen() {
             </View>
           )}
         />
+        {mapReady && (
+          <TouchableOpacity
+            style={[styles.recenterBtn, { backgroundColor: colors.surface }]}
+            onPress={recenterMap}
+            activeOpacity={0.8}
+          >
+            <Locate size={20} color={colors.primary} />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Bottom Info Panel */}
@@ -419,6 +452,21 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
+  },
+  recenterBtn: {
+    position: 'absolute',
+    right: 16,
+    bottom: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
   },
   driverMarker: {
     width: 48,
