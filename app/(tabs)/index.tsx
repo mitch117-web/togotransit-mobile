@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Pressable,
   Modal,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -187,8 +188,11 @@ export default function SearchHomeScreen() {
     router.push(`/trajet-detail?${params.toString()}`);
   };
 
-  const loadQuickTrajets = React.useCallback(async () => {
-    setQuickLoading(true);
+  // `silent` évite d'afficher le spinner plein écran lors du polling en
+  // arrière-plan — seul un rechargement explicite (ouverture d'écran ou
+  // pull-to-refresh) doit remplacer le contenu par un indicateur de chargement.
+  const loadQuickTrajets = React.useCallback(async (silent = false) => {
+    if (!silent) setQuickLoading(true);
     setQuickError(null);
     try {
       const r = await trajets.search({
@@ -198,15 +202,34 @@ export default function SearchHomeScreen() {
       });
       setQuickResults(r.data.slice(0, 5));
     } catch (e) {
-      setQuickError(e);
+      if (!silent) setQuickError(e);
     } finally {
-      setQuickLoading(false);
+      if (!silent) setQuickLoading(false);
     }
   }, [date]);
 
   React.useEffect(() => {
     loadQuickTrajets();
   }, [loadQuickTrajets]);
+
+  // Rafraîchissement automatique et discret : un trajet ajouté par une
+  // compagnie apparaît sans que le voyageur ait à tirer l'écran lui-même.
+  // Le pull-to-refresh (onRefresh ci-dessous) reste disponible pour un
+  // rechargement immédiat à la demande.
+  React.useEffect(() => {
+    const interval = setInterval(() => loadQuickTrajets(true), 45000);
+    return () => clearInterval(interval);
+  }, [loadQuickTrajets]);
+
+  // Permet de tirer l'écran vers le bas pour revoir les trajets à jour — sans
+  // ça, un trajet ajouté par une compagnie après l'ouverture de l'appli
+  // n'apparaît qu'en relançant l'appli entièrement.
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([loadQuickTrajets(), refreshUnreadCount()]);
+    setRefreshing(false);
+  }, [loadQuickTrajets, refreshUnreadCount]);
 
   const datesRapides = [0, 1, 2, 3].map(n => addDays(today, n));
 
@@ -237,7 +260,13 @@ export default function SearchHomeScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 40 }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
+          }
+        >
           <View style={[styles.header, { backgroundColor: colors.background, paddingBottom: 32 }]}>
             <View style={styles.headerTop}>
               <View>
@@ -388,7 +417,7 @@ export default function SearchHomeScreen() {
             )}
           </View>
 
-          {quickLoading ? (
+          {quickLoading && !refreshing ? (
             <View style={{ marginTop: 10, marginHorizontal: 16 }}>
               <LoadingState label={date ? "Recherche des trajets du jour…" : "Recherche des prochains trajets…"} />
             </View>

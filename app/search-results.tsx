@@ -11,6 +11,7 @@ import {
   TextInput,
   Switch,
   KeyboardAvoidingView,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -59,6 +60,7 @@ export default function SearchResultsScreen() {
   const date = params.date ?? undefined;
 
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<any>(null);
   const [results, setResults] = useState<TrajetResult[]>([]);
   const [meta, setMeta] = useState<any>({});
@@ -106,10 +108,19 @@ export default function SearchResultsScreen() {
       setError(e);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [depart, arrivee, date, sortKey, sortDir]);
 
   React.useEffect(() => {
+    loadResults();
+  }, [loadResults]);
+
+  // Tirer l'écran vers le bas relance la recherche — sinon un trajet ajouté
+  // par une compagnie après l'ouverture de cet écran n'apparaît jamais sans
+  // relancer toute l'appli.
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
     loadResults();
   }, [loadResults]);
 
@@ -259,8 +270,11 @@ export default function SearchResultsScreen() {
         <ScrollView
           contentContainerStyle={{ paddingBottom: 40, paddingTop: 2 }}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
+          }
         >
-          {loading ? (
+          {loading && !refreshing ? (
             <LoadingState
               label="Recherche des trajets en cours…"
               description={`${depart || ''} → ${arrivee || ''}`}
