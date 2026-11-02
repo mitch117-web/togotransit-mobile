@@ -110,6 +110,11 @@ export default function ParcelDetailsScreen() {
 
   const statusInfo = getStatusInfo(parcel.status);
   const history = JSON.parse(parcel.statusHistory || '[]');
+  // Date de remise réelle uniquement : aucune estimation n'est affichée tant que le colis n'est pas livré.
+  const livre = parcel.status === 'DELIVERED';
+  const dateLivraison = livre
+    ? new Date(parcel.pod?.deliveredAt ?? parcel.updatedAt ?? Date.now()).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+    : null;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.surfaceContainerLow }]}>
@@ -172,8 +177,8 @@ export default function ParcelDetailsScreen() {
         <View style={styles.actionRow}>
           <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + '40' }]}>
             <Clock size={20} color={colors.primary} />
-            <Text style={[styles.actionBtnText, { color: colors.onSurface }]}>Est. Livraison</Text>
-            <Text style={[styles.actionBtnValue, { color: colors.primary }]}>24 Mai</Text>
+            <Text style={[styles.actionBtnText, { color: colors.onSurface }]}>{livre ? 'Livré le' : 'Livraison'}</Text>
+            <Text style={[styles.actionBtnValue, { color: colors.primary }]}>{dateLivraison ?? 'En cours'}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.surface, borderColor: colors.outlineVariant + '40' }]}>
             <Weight size={20} color={colors.secondary} />
