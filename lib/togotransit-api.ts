@@ -277,10 +277,14 @@ export const trajetDetails = {
         ? Math.round((avisList.reduce((s: number, a: any) => s + (a.note || 0), 0) / avisList.length) * 10) / 10
         : null;
 
-    const nbPassagersReserves = (raw.reservations || []).reduce(
-      (s: number, r: any) => s + (r.passagers?.length ?? r.nombre_places ?? 1),
-      0
-    );
+    // Le serveur ne renvoie plus la liste des réservations aux voyageurs (données de passagers) :
+    // il fournit directement le total réservé.
+    const nbPassagersReserves: number =
+      raw.places_reservees ??
+      (raw.reservations || []).reduce(
+        (s: number, r: any) => s + (r.passagers?.length ?? r.nombre_places ?? 1),
+        0
+      );
     const placesDispos =
       raw.places_disponibles ?? raw.vehicule?.nombre_places ?? 30;
     const places_restantes = Math.max(0, placesDispos);
