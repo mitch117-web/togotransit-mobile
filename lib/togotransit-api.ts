@@ -201,6 +201,8 @@ export interface BilletDetail {
       ville_depart: { id?: number; nom: string; region?: string | null };
       ville_arrivee: { id?: number; nom: string; region?: string | null };
       date_depart: string;
+      /** Instant de départ précis (jour de date_depart, heure de heure_depart) ; absent des serveurs plus anciens. */
+      depart_at?: string;
       vehicule?: { type?: string | null; immatriculation?: string } | null;
     };
   };

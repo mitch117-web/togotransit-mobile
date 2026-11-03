@@ -28,6 +28,9 @@ import {
   Phone,
 } from 'lucide-react-native';
 import QRCode from 'react-native-qrcode-svg';
+import { LogoMark } from '../components/ui/Logo';
+import { Brand } from '../constants/Colors';
+import { billetUrl, formatHeureUtc } from '../lib/billet';
 import { captureRef } from 'react-native-view-shot';
 import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
@@ -152,6 +155,7 @@ export default function TicketScreen() {
 
   const trajet = billet?.reservation?.trajet;
   const passagers = billet?.reservation?.passagers ?? [];
+  const sieges = passagers.map((p) => p.numero_siege).filter(Boolean) as string[];
   const statutBg =
     billet?.statut === 'valide'
       ? colors.primaryContainer
@@ -219,6 +223,15 @@ export default function TicketScreen() {
               collapsable={false}
               style={[styles.billetCard, { backgroundColor: colors.surfaceContainerLowest, borderColor: colors.border }]}
             >
+              <View style={styles.brandBand}>
+                <LogoMark size={28} variant="glyph" />
+                <Text style={styles.brandWord}>
+                  <Text style={{ color: Brand.white, fontWeight: '900' }}>Togo</Text>
+                  <Text style={{ color: Brand.sun, fontWeight: '900' }}>Transit</Text>
+                </Text>
+                <Text style={styles.brandKicker}>BILLET DE TRANSPORT</Text>
+              </View>
+
               <View style={styles.billetHeader}>
                 <View style={[styles.compagnieWrap, { backgroundColor: colors.primaryContainer }]}>
                   <Bus size={22} color={colors.onPrimaryContainer} />
@@ -230,7 +243,7 @@ export default function TicketScreen() {
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
                     <Calendar size={12} color={colors.textSecondary} />
                     <Text style={[styles.billetDate, { color: colors.textSecondary }]}>
-                      {formatDateBillet(trajet.date_depart)}
+                      {formatDateBillet(trajet.depart_at ?? trajet.date_depart)}
                     </Text>
                   </View>
                 </View>
@@ -242,12 +255,26 @@ export default function TicketScreen() {
               </View>
 
               <View style={[styles.qrWrap, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
-                <QRCode
-                  value={billet.code_qr || billet.numero_billet}
-                  size={180}
-                  color={colors.text}
-                  backgroundColor={colors.background}
-                />
+                {/* Le QR code encode l'adresse de la page de vérification : un appareil photo l'ouvre, l'application du contrôleur le valide. */}
+                <View style={{ opacity: billet.statut === 'valide' ? 1 : 0.18 }}>
+                  <QRCode
+                    value={billetUrl(billet.numero_billet)}
+                    size={180}
+                    color={colors.text}
+                    backgroundColor={colors.background}
+                  />
+                </View>
+                {billet.statut === 'valide' ? (
+                  <Text style={[styles.qrLegende, { color: colors.textSecondary }]}>
+                    Présentez ce code à l'embarquement
+                  </Text>
+                ) : (
+                  <View style={styles.qrVoile}>
+                    <Text style={[styles.qrVoileTexte, { color: colors.text }]}>
+                      {billet.statut === 'utilise' ? 'Billet utilisé' : 'Billet annulé'}
+                    </Text>
+                  </View>
+                )}
               </View>
 
               <View style={[styles.trajetBox, { borderTopColor: colors.border }]}>
@@ -279,10 +306,7 @@ export default function TicketScreen() {
                 <View style={{ alignItems: 'flex-end', gap: 18 }}>
                   <View style={{ alignItems: 'flex-end' }}>
                     <Text style={[styles.heure, { color: colors.text }]}>
-                      {new Date(trajet.date_depart).toLocaleTimeString('fr-FR', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                      {formatHeureUtc(trajet.depart_at ?? trajet.date_depart)}
                     </Text>
                     <Text style={[styles.villeRegion, { color: colors.textSecondary }]}>
                       {trajet.ville_depart?.region ?? ''}
@@ -290,6 +314,11 @@ export default function TicketScreen() {
                   </View>
                   <View style={{ alignItems: 'flex-end' }}>
                     <TicketIcon size={14} color={colors.primary} />
+                    {sieges.length ? (
+                      <Text style={[styles.heure, { color: colors.text, marginTop: 2 }]}>
+                        {sieges.map((s) => `#${s}`).join(' ')}
+                      </Text>
+                    ) : null}
                     <Text style={[styles.billetPlaces, { color: colors.textSecondary, marginTop: 2 }]}>
                       {billet.reservation?.nombre_places ?? 1} place
                       {(billet.reservation?.nombre_places ?? 1) > 1 ? 's' : ''}
@@ -388,6 +417,25 @@ const styles = StyleSheet.create({
     elevation: 2,
     overflow: 'hidden',
   },
+  brandBand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: Brand.indigo,
+    borderBottomWidth: 3,
+    borderBottomColor: Brand.sun,
+  },
+  brandWord: { fontSize: 17, letterSpacing: -0.4 },
+  brandKicker: {
+    marginLeft: 'auto',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 1.2,
+    color: Brand.white,
+    opacity: 0.85,
+  },
   billetHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -416,6 +464,9 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     paddingHorizontal: 20,
   },
+  qrLegende: { marginTop: 12, fontSize: 12, fontWeight: '600' },
+  qrVoile: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
+  qrVoileTexte: { fontSize: 20, fontWeight: '900' },
   trajetBox: {
     flexDirection: 'row',
     alignItems: 'stretch',
