@@ -39,7 +39,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#1C2A5E"
     },
     "ios": {
       "supportsTablet": true,
@@ -55,7 +55,7 @@
       "package": "tg.togotransit.mobile",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#1C2A5E"
       },
       "edgeToEdgeEnabled": true,
       "permissions": [
