@@ -378,6 +378,18 @@ export default function TicketScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
+
+            {billet.reservation?.id ? (
+              <TouchableOpacity
+                onPress={() => router.push(`/ticket-detail?id=${billet.reservation?.id}`)}
+                activeOpacity={0.7}
+                style={styles.detailsLink}
+              >
+                <Text style={[styles.detailsLinkText, { color: colors.primary }]}>
+                  {billet.statut === 'annule' ? 'Détails de la réservation' : 'Détails de la réservation et annulation'}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
           </FadeInStagger>
         )}
       </ScrollView>
@@ -510,6 +522,8 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingTop: 4,
   },
+  detailsLink: { alignItems: 'center', paddingVertical: 10 },
+  detailsLinkText: { fontSize: 14, fontWeight: '700' },
   btnSecondary: {
     flex: 1,
     flexDirection: 'row',

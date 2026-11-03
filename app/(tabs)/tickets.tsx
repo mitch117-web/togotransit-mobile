@@ -430,11 +430,23 @@ export default function TicketsScreen() {
                         </View>
                       </TouchableOpacity>
                     ))
-                  ) : (
+                  ) : item.statut === 'annulee' ? null : (
                     <Text style={[styles.noBilletText, { color: colors.tabIconDefault }]}>
                       Billet en cours de génération…
                     </Text>
                   )}
+
+                  {/* Le détail de la réservation : passagers, paiement et bouton « Annuler la réservation ». */}
+                  <TouchableOpacity
+                    style={styles.detailsLink}
+                    onPress={() => router.push(`/ticket-detail?id=${item.id}`)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.detailsLinkText, { color: colors.primary }]}>
+                      {item.statut === 'annulee' ? 'Voir les détails' : 'Détails et annulation'}
+                    </Text>
+                    <ChevronRight size={16} color={colors.primary} />
+                  </TouchableOpacity>
                 </View>
               </GlassCard>
               </FadeInStagger>
@@ -480,6 +492,18 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: 24,
     paddingBottom: 40,
+  },
+  detailsLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingTop: 14,
+    paddingBottom: 2,
+  },
+  detailsLinkText: {
+    fontSize: 14,
+    fontWeight: '700',
   },
   ticketCard: {
     borderRadius: 24,

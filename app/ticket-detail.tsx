@@ -5,13 +5,13 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../lib/theme';
 import { reservations, ReservationRecord } from '../lib/togotransit-api';
 import { formatHeureUtc } from '../lib/billet';
+import { showAlert } from '../lib/alert';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 import {
@@ -110,9 +110,9 @@ export default function TicketDetailScreen() {
 
   const annulerReservation = async () => {
     if (!reservation) return;
-    Alert.alert(
+    showAlert(
       'Annuler la réservation',
-      'Êtes-vous sûr de vouloir annuler cette réservation ? Les places seront restituées.',
+      "Êtes-vous sûr de vouloir annuler cette réservation ? Votre billet ne sera plus valable et les places seront restituées. Si vous avez déjà payé, contactez la compagnie pour un éventuel remboursement : il n'est pas automatique.",
       [
         { text: 'Non', style: 'cancel' },
         {
@@ -123,13 +123,13 @@ export default function TicketDetailScreen() {
             try {
               const res = await reservations.annuler(reservation.id);
               if (res.success) {
-                Alert.alert('Annulée', 'Votre réservation a bien été annulée.');
+                showAlert('Annulée', 'Votre réservation a bien été annulée.');
                 loadReservation();
               } else {
-                Alert.alert('Erreur', res.message || "Impossible d'annuler.");
+                showAlert('Erreur', res.message || "Impossible d'annuler.");
               }
             } catch (e: any) {
-              Alert.alert('Erreur', e?.message || "Impossible d'annuler.");
+              showAlert('Erreur', e?.response?.data?.error || e?.message || "Impossible d'annuler.");
             } finally {
               setCancelLoading(false);
             }
