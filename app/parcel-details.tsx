@@ -80,8 +80,8 @@ export default function ParcelDetailsScreen() {
       case 'CREATED': return { label: 'Créé', color: colors.outline, bg: colors.surfaceContainerHigh };
       case 'PENDING': return { label: 'En attente', color: colors.secondary, bg: colors.secondaryContainer };
       case 'IN_AGENCY': return { label: 'En agence', color: colors.primary, bg: colors.primaryContainer };
-      case 'IN_TRANSIT': return { label: 'En transit', color: '#006adc', bg: '#d1e4ff' };
-      case 'OUT_FOR_DELIVERY': return { label: 'En livraison', color: '#9d4300', bg: '#ffdbca' };
+      case 'IN_TRANSIT': return { label: 'En transit', color: colors.onTertiaryContainer, bg: colors.tertiaryContainer };
+      case 'OUT_FOR_DELIVERY': return { label: 'En livraison', color: colors.onTertiary, bg: colors.tertiary };
       case 'DELIVERED': return { label: 'Livré', color: colors.success, bg: colors.success + '20' };
       default: return { label: status, color: colors.outline, bg: colors.surfaceContainerHigh };
     }

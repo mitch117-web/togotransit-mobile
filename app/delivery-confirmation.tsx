@@ -267,7 +267,7 @@ export default function DeliveryConfirmationScreen() {
             </TouchableOpacity>
           </View>
           
-          <View style={{ flex: 1, backgroundColor: '#f9f9f9' }}>
+          <View style={{ flex: 1, backgroundColor: colors.background }}>
             <SignatureScreen
               ref={signatureRef}
               onOK={(img) => {
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: 'rgba(14,21,48,0.08)',
   },
   modalCloseBtn: {
     padding: 8,

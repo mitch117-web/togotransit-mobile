@@ -35,9 +35,9 @@ const MAP_HTML = `<!DOCTYPE html>
     var map = L.map('map', { zoomControl: false, attributionControl: false }).setView([8.2, 1.0], 7);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
 
-    var originIcon = L.divIcon({ className: '', iconSize: [16, 16], html: '<div class="tt-dot" style="width:16px;height:16px;background:#3b82f6"></div>' });
-    var destIcon = L.divIcon({ className: '', iconSize: [16, 16], html: '<div class="tt-dot" style="width:16px;height:16px;background:#10b981"></div>' });
-    var driverIcon = L.divIcon({ className: '', iconSize: [26, 26], html: '<div class="tt-driver" style="width:26px;height:26px;background:#f97316">🚌</div>' });
+    var originIcon = L.divIcon({ className: '', iconSize: [16, 16], html: '<div class="tt-dot" style="width:16px;height:16px;background:#1C2A5E"></div>' });
+    var destIcon = L.divIcon({ className: '', iconSize: [16, 16], html: '<div class="tt-dot" style="width:16px;height:16px;background:#14A89A"></div>' });
+    var driverIcon = L.divIcon({ className: '', iconSize: [26, 26], html: '<div class="tt-driver" style="width:26px;height:26px;background:#FFB020">🚌</div>' });
 
     var originMarker = null, destMarker = null, driverMarker = null, routeLine = null;
 
@@ -65,7 +65,7 @@ const MAP_HTML = `<!DOCTYPE html>
       points.push([dest.latitude, dest.longitude]);
       lastPoints = points;
 
-      routeLine = L.polyline(points, { color: '#f97316', weight: 3, opacity: 0.85, dashArray: driver ? null : '6 8' }).addTo(map);
+      routeLine = L.polyline(points, { color: '#1C2A5E', weight: 4, opacity: 0.85, dashArray: driver ? null : '6 8' }).addTo(map);
       if (fit) {
         map.fitBounds(L.latLngBounds(points), { padding: [48, 48] });
       }
@@ -605,7 +605,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#10b981',
+    backgroundColor: '#14A89A',
     borderWidth: 2,
     borderColor: 'white',
   },

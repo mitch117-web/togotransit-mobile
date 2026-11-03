@@ -270,7 +270,7 @@ export default function SendParcelScreen() {
         {/* Section: Colis */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Package size={18} color={colors.tertiary} />
+            <Package size={18} color={colors.primary} />
             <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>Détails du Colis</Text>
           </View>
 

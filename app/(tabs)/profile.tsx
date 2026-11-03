@@ -86,15 +86,15 @@ export default function ProfileScreen() {
       items: [
         { icon: User, label: 'Informations personnelles', color: colors.primary, action: () => router.push('/edit-profile') },
         { icon: CreditCard, label: 'Modes de paiement', color: colors.primary, action: () => handlePress('Modes de paiement') },
-        { icon: MapPin, label: 'Adresses enregistrées', color: '#38a169', action: () => handlePress('Adresses enregistrées') },
+        { icon: MapPin, label: 'Adresses enregistrées', color: colors.secondary, action: () => handlePress('Adresses enregistrées') },
       ]
     },
     {
       title: 'Préférences',
       items: [
-        { icon: theme === 'dark' ? Moon : Sun, label: 'Mode sombre', color: theme === 'dark' ? '#f59e0b' : colors.primary, isThemeSwitch: true },
-        { icon: Bell, label: 'Notifications', color: '#805ad5', hasSwitch: true },
-        { icon: Shield, label: 'Changer le mot de passe', color: '#3182ce', action: () => router.push('/edit-profile') },
+        { icon: theme === 'dark' ? Moon : Sun, label: 'Mode sombre', color: theme === 'dark' ? colors.warning : colors.primary, isThemeSwitch: true },
+        { icon: Bell, label: 'Notifications', color: colors.secondary, hasSwitch: true },
+        { icon: Shield, label: 'Changer le mot de passe', color: colors.primary, action: () => router.push('/edit-profile') },
       ]
     },
     {
