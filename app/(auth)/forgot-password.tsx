@@ -27,8 +27,8 @@ import FadeInStagger from '../../components/ui/FadeInStagger';
 import GlassCard from '../../components/ui/GlassCard';
 import { auth as authApi } from '../../lib/togotransit-api';
 
-const GOLD = '#fd761a';
-const GOLD_DIM = '#e8650a';
+const GOLD = '#FFB020';
+const GOLD_DIM = '#F29A00';
 
 export default function ForgotPasswordScreen() {
   const [login, setLogin] = useState('');
@@ -80,7 +80,7 @@ export default function ForgotPasswordScreen() {
           headerShown: true,
           headerTitle: step === 'request' ? 'Récupérer mon compte' : 'Code de vérification',
           headerBackTitle: 'Retour',
-          headerStyle: { backgroundColor: '#070d1a' },
+          headerStyle: { backgroundColor: '#0A0F24' },
           headerTintColor: '#f5f7ff',
         }}
       />
@@ -91,7 +91,7 @@ export default function ForgotPasswordScreen() {
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <FadeInStagger index={0}>
             <LinearGradient colors={[GOLD, GOLD_DIM]} style={styles.logoCircle}>
-              <KeyRound color="#1a0800" size={32} />
+              <KeyRound color="#0A0F24" size={32} />
             </LinearGradient>
             <Text style={styles.h1}>
               {step === 'request' ? "Avez-vous oublié votre mot de passe ?" : "Vérifiez votre téléphone"}
@@ -127,11 +127,11 @@ export default function ForgotPasswordScreen() {
                 <TouchableOpacity onPress={submitRequest} disabled={loading} activeOpacity={0.85}>
                   <LinearGradient colors={[GOLD, GOLD_DIM]} style={[styles.btnPrimary, loading && { opacity: 0.65 }]}>
                     {loading ? (
-                      <ActivityIndicator color="#1a0800" />
+                      <ActivityIndicator color="#0A0F24" />
                     ) : (
                       <>
                         <Text style={styles.btnPrimaryText}>Envoyer le code</Text>
-                        <ArrowRight color="#1a0800" size={18} />
+                        <ArrowRight color="#0A0F24" size={18} />
                       </>
                     )}
                   </LinearGradient>
@@ -172,7 +172,7 @@ export default function ForgotPasswordScreen() {
                 <TouchableOpacity onPress={submitOtp} disabled={loading} activeOpacity={0.85}>
                   <LinearGradient colors={[GOLD, GOLD_DIM]} style={[styles.btnPrimary, loading && { opacity: 0.65 }]}>
                     {loading ? (
-                      <ActivityIndicator color="#1a0800" />
+                      <ActivityIndicator color="#0A0F24" />
                     ) : (
                       <Text style={styles.btnPrimaryText}>Réinitialiser le mot de passe</Text>
                     )}
@@ -193,7 +193,7 @@ export default function ForgotPasswordScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#070d1a' },
+  container: { flex: 1, backgroundColor: '#0A0F24' },
   glowTop: {
     position: 'absolute',
     top: -140,
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
     width: 320,
     height: 320,
     borderRadius: 999,
-    backgroundColor: 'rgba(253,118,26,0.14)',
+    backgroundColor: 'rgba(76,99,214,0.22)',
   },
   content: { padding: 22, paddingTop: 20, gap: 10 },
   logoCircle: {
@@ -229,5 +229,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
     paddingVertical: 16, borderRadius: 14, marginTop: 4,
   },
-  btnPrimaryText: { fontSize: 16, fontWeight: '800', color: '#1a0800', textTransform: 'uppercase', letterSpacing: 0.5 },
+  btnPrimaryText: { fontSize: 16, fontWeight: '800', color: '#0A0F24', textTransform: 'uppercase', letterSpacing: 0.5 },
 });

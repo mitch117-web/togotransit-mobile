@@ -1,15 +1,17 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, Dimensions, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Dimensions, TouchableOpacity, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Truck, ShoppingBag, MapPin, ArrowRight, ShieldCheck, Globe, Zap } from 'lucide-react-native';
 import { useAuth } from '../lib/auth';
+import { Logo } from '../components/ui/Logo';
+import { BusDawnIllustration, ParcelTrackingIllustration, NetworkIllustration } from '../components/BrandIllustrations';
 
 const { width, height } = Dimensions.get('window');
 
-const GOLD = '#fd761a';
-const GOLD_DIM = '#e8650a';
+const GOLD = '#FFB020';
+const GOLD_DIM = '#F29A00';
 
 const SLIDES = [
   {
@@ -19,7 +21,7 @@ const SLIDES = [
     icon: ShoppingBag,
     feature: 'Réservation Instantanée',
     featureIcon: Zap,
-    image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80'
+    Illustration: BusDawnIllustration,
   },
   {
     id: '2',
@@ -28,7 +30,7 @@ const SLIDES = [
     icon: Truck,
     feature: 'Sécurité Maximale',
     featureIcon: ShieldCheck,
-    image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80'
+    Illustration: ParcelTrackingIllustration,
   },
   {
     id: '3',
@@ -37,7 +39,7 @@ const SLIDES = [
     icon: MapPin,
     feature: 'Partout au Togo',
     featureIcon: Globe,
-    image: 'https://images.unsplash.com/photo-1527030280862-64139fba04ca?auto=format&fit=crop&w=800&q=80'
+    Illustration: NetworkIllustration,
   }
 ];
 
@@ -61,8 +63,7 @@ export default function OnboardingScreen() {
   const renderItem = ({ item }: { item: typeof SLIDES[0] }) => (
     <View style={[styles.slide, { width }]}>
       <View style={styles.imageWrapper}>
-        <View style={styles.imageDecoration} />
-        <Image source={{ uri: item.image }} style={styles.image} resizeMode="cover" />
+        <item.Illustration />
         <View style={styles.featureBadge}>
           <item.featureIcon size={16} color={GOLD} strokeWidth={2.5} />
           <Text style={styles.featureText}>{item.feature}</Text>
@@ -82,10 +83,7 @@ export default function OnboardingScreen() {
 
       <View style={styles.header}>
         <View style={styles.logoRow}>
-          <LinearGradient colors={[GOLD, GOLD_DIM]} style={styles.logoDot}>
-            <Truck size={20} color="#1a0800" strokeWidth={2.5} />
-          </LinearGradient>
-          <Text style={styles.logoText}>Togo<Text style={{ color: GOLD }}>Transit</Text></Text>
+          <Logo tone="onDark" size={36} />
         </View>
         <TouchableOpacity onPress={() => finishOnboarding('/(auth)/login')}>
           <Text style={styles.skipText}>Passer</Text>
@@ -124,7 +122,7 @@ export default function OnboardingScreen() {
           <TouchableOpacity onPress={() => finishOnboarding('/(auth)/register')} activeOpacity={0.85}>
             <LinearGradient colors={[GOLD, GOLD_DIM]} style={styles.primaryButton}>
               <Text style={styles.primaryButtonText}>Commencer l'aventure</Text>
-              <ArrowRight size={20} color="#1a0800" strokeWidth={2.5} />
+              <ArrowRight size={20} color="#0A0F24" strokeWidth={2.5} />
             </LinearGradient>
           </TouchableOpacity>
 
@@ -145,7 +143,7 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#070d1a',
+    backgroundColor: '#0A0F24',
   },
   glowTop: {
     position: 'absolute',
@@ -154,7 +152,7 @@ const styles = StyleSheet.create({
     width: 320,
     height: 320,
     borderRadius: 999,
-    backgroundColor: 'rgba(253,118,26,0.14)',
+    backgroundColor: 'rgba(76,99,214,0.22)',
   },
   header: {
     paddingHorizontal: 24,
@@ -208,7 +206,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: 'rgba(253,118,26,0.25)',
+    backgroundColor: 'rgba(76,99,214,0.25)',
     zIndex: 1,
   },
   image: {
@@ -226,7 +224,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 16,
     zIndex: 2,
-    backgroundColor: 'rgba(7,13,26,0.75)',
+    backgroundColor: 'rgba(10,15,36,0.75)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.14)',
   },
@@ -284,7 +282,7 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#1a0800',
+    color: '#0A0F24',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },

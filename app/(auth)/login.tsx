@@ -15,16 +15,17 @@ import {
 import { useRouter, Stack } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../lib/auth';
-import { LogIn, Mail, Lock, ArrowRight, Eye, EyeOff, Truck } from 'lucide-react-native';
+import { LogIn, Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react-native';
+import { LogoMark } from '../../components/ui/Logo';
 import FadeInStagger from '../../components/ui/FadeInStagger';
 import GlassCard from '../../components/ui/GlassCard';
 
-// Écran d'entrée de l'app : look "premium" fixe (fond marine + accent or),
+// Écran d'entrée de l'app : look "premium" fixe (fond indigo nuit + accent soleil),
 // indépendant du thème clair/sombre choisi par l'utilisateur — même parti
 // pris que la page de connexion web, pour une identité de marque cohérente
 // dès le tout premier écran vu, sur les deux plateformes.
-const GOLD = '#fd761a';
-const GOLD_DIM = '#e8650a';
+const GOLD = '#FFB020';
+const GOLD_DIM = '#F29A00';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -64,9 +65,9 @@ export default function LoginScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <FadeInStagger index={0}>
             <View style={styles.header}>
-              <LinearGradient colors={[GOLD, GOLD_DIM]} style={styles.logoDot}>
-                <Truck size={32} color="#1a0800" strokeWidth={2.5} />
-              </LinearGradient>
+              <View style={styles.logoDot}>
+                <LogoMark size={64} />
+              </View>
               <Text style={styles.title}>Bon retour !</Text>
               <Text style={styles.subtitle}>
                 Connectez-vous pour gérer vos voyages et vos colis en toute simplicité.
@@ -122,11 +123,11 @@ export default function LoginScreen() {
               <TouchableOpacity onPress={handleLogin} disabled={loading} activeOpacity={0.85}>
                 <LinearGradient colors={[GOLD, GOLD_DIM]} style={styles.loginBtn}>
                   {loading ? (
-                    <ActivityIndicator color="#1a0800" />
+                    <ActivityIndicator color="#0A0F24" />
                   ) : (
                     <>
                       <Text style={styles.loginBtnText}>Se connecter</Text>
-                      <ArrowRight size={20} color="#1a0800" strokeWidth={2.5} />
+                      <ArrowRight size={20} color="#0A0F24" strokeWidth={2.5} />
                     </>
                   )}
                 </LinearGradient>
@@ -156,7 +157,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#070d1a',
+    backgroundColor: '#0A0F24',
   },
   glowTop: {
     position: 'absolute',
@@ -165,7 +166,7 @@ const styles = StyleSheet.create({
     width: 320,
     height: 320,
     borderRadius: 999,
-    backgroundColor: 'rgba(253,118,26,0.16)',
+    backgroundColor: 'rgba(76,99,214,0.24)',
   },
   glowBottom: {
     position: 'absolute',
@@ -174,7 +175,7 @@ const styles = StyleSheet.create({
     width: 360,
     height: 360,
     borderRadius: 999,
-    backgroundColor: 'rgba(253,118,26,0.12)',
+    backgroundColor: 'rgba(76,99,214,0.18)',
   },
   scrollContent: {
     flexGrow: 1,
@@ -188,11 +189,11 @@ const styles = StyleSheet.create({
   logoDot: {
     width: 64,
     height: 64,
-    borderRadius: 20,
+    borderRadius: 32,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
-    shadowColor: '#fd761a',
+    shadowColor: '#FFB020',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
     shadowRadius: 16,
@@ -234,7 +235,7 @@ const styles = StyleSheet.create({
   forgotText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#fd761a',
+    color: '#FFB020',
   },
   inputField: {
     flexDirection: 'row',
@@ -265,7 +266,7 @@ const styles = StyleSheet.create({
   loginBtnText: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#1a0800',
+    color: '#0A0F24',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -295,7 +296,7 @@ const styles = StyleSheet.create({
     color: 'rgba(245,247,255,0.6)',
   },
   registerTextAccent: {
-    color: '#fd761a',
+    color: '#FFB020',
     fontWeight: '800',
   },
 });

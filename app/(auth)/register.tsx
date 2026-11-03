@@ -20,8 +20,8 @@ import { firstValidationError } from '../../lib/api';
 import FadeInStagger from '../../components/ui/FadeInStagger';
 import GlassCard from '../../components/ui/GlassCard';
 
-const GOLD = '#fd761a';
-const GOLD_DIM = '#e8650a';
+const GOLD = '#FFB020';
+const GOLD_DIM = '#F29A00';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -172,7 +172,7 @@ export default function RegisterScreen() {
 
               <TouchableOpacity style={styles.termsRow} onPress={() => setAgreed(!agreed)}>
                 <View style={[styles.checkbox, agreed && styles.checkboxChecked]}>
-                  {agreed && <Check size={14} color="#1a0800" strokeWidth={3} />}
+                  {agreed && <Check size={14} color="#0A0F24" strokeWidth={3} />}
                 </View>
                 <Text style={styles.termsText}>
                   J'accepte les <Text style={styles.termsAccent}>Conditions d'Utilisation</Text> et la{' '}
@@ -186,13 +186,13 @@ export default function RegisterScreen() {
                   style={styles.registerBtn}
                 >
                   {loading ? (
-                    <ActivityIndicator color="#1a0800" />
+                    <ActivityIndicator color="#0A0F24" />
                   ) : (
                     <>
                       <Text style={[styles.registerBtnText, !agreed && { color: 'rgba(245,247,255,0.4)' }]}>
                         Créer mon compte
                       </Text>
-                      <ShieldCheck size={20} color={agreed ? '#1a0800' : 'rgba(245,247,255,0.4)'} strokeWidth={2.5} />
+                      <ShieldCheck size={20} color={agreed ? '#0A0F24' : 'rgba(245,247,255,0.4)'} strokeWidth={2.5} />
                     </>
                   )}
                 </LinearGradient>
@@ -216,7 +216,7 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#070d1a',
+    backgroundColor: '#0A0F24',
   },
   glowTop: {
     position: 'absolute',
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     width: 300,
     height: 300,
     borderRadius: 999,
-    backgroundColor: 'rgba(253,118,26,0.14)',
+    backgroundColor: 'rgba(76,99,214,0.22)',
   },
   scrollContent: {
     flexGrow: 1,
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
   registerBtnText: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#1a0800',
+    color: '#0A0F24',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
