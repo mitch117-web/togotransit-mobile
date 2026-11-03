@@ -108,8 +108,8 @@ export const TrajetCard: React.FC<Props> = ({ trajet, onPress, compact }) => {
               <View style={{ height: 2 }} />
             )}
           </View>
-          <View style={[styles.prixBox, { backgroundColor: colors.primaryContainer }]}>
-            <Text style={[styles.prix, { color: colors.onPrimaryContainer }]}>
+          <View style={[styles.prixBox, { backgroundColor: colors.tertiaryContainer }]}>
+            <Text style={[styles.prix, { color: colors.onTertiaryContainer }]}>
               {formatPrix(trajet.prix, trajet.devise)}
             </Text>
           </View>

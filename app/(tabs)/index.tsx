@@ -35,6 +35,7 @@ import TrajetCard, { Trajet } from '../../components/TrajetCard';
 import DriverHome from '../../components/DriverHome';
 import GlassCard from '../../components/ui/GlassCard';
 import FadeInStagger from '../../components/ui/FadeInStagger';
+import { LogoMark } from '../../components/ui/Logo';
 import { villes, trajets, notifications as notificationsApi, Ville, TrajetResult, MonTrajetConduit } from '../../lib/togotransit-api';
 import api from '../../lib/api';
 
@@ -269,9 +270,12 @@ export default function SearchHomeScreen() {
         >
           <View style={[styles.header, { backgroundColor: colors.background, paddingBottom: 32 }]}>
             <View style={styles.headerTop}>
-              <View>
-                <Text style={[styles.hello, { color: colors.textSecondary }]}>Bonjour,</Text>
-                <Text style={[styles.userName, { color: colors.text }]}>{userNameLabel} 👋</Text>
+              <View style={styles.greetRow}>
+                <LogoMark size={44} />
+                <View>
+                  <Text style={[styles.hello, { color: colors.textSecondary }]}>Bonjour,</Text>
+                  <Text style={[styles.userName, { color: colors.text }]}>{userNameLabel} 👋</Text>
+                </View>
               </View>
               <View style={styles.headerRight}>
                 <TouchableOpacity
@@ -295,7 +299,7 @@ export default function SearchHomeScreen() {
             </View>
 
             <Text style={[styles.heroTitle, { color: colors.text }]}>
-              Où souhaitez-vous aller ?
+              {'Où souhaitez-vous\naller ?'}
             </Text>
             <Text style={[styles.heroSub, { color: colors.textSecondary }]}>
               Comparez toutes les compagnies de transport togolaises en une recherche.
@@ -392,12 +396,16 @@ export default function SearchHomeScreen() {
               activeOpacity={0.85}
               style={[
                 styles.searchBtn,
-                { backgroundColor: colors.primary },
-                (!depart.trim() || !arrivee.trim()) && { opacity: 0.55 },
+                { backgroundColor: !depart.trim() || !arrivee.trim() ? colors.surfaceContainerHigh : colors.primary },
               ]}
             >
-              <SearchIcon color={colors.onPrimary} size={18} />
-              <Text style={[styles.searchBtnText, { color: colors.onPrimary }]}>
+              <SearchIcon color={!depart.trim() || !arrivee.trim() ? colors.onSurfaceVariant : colors.onPrimary} size={18} />
+              <Text
+                style={[
+                  styles.searchBtnText,
+                  { color: !depart.trim() || !arrivee.trim() ? colors.onSurfaceVariant : colors.onPrimary },
+                ]}
+              >
                 Rechercher un trajet
               </Text>
             </TouchableOpacity>
@@ -576,7 +584,8 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '800',
   },
-  heroTitle: { fontSize: 26, fontWeight: '900', marginTop: 10, letterSpacing: -0.3, paddingRight: 40 },
+  greetRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  heroTitle: { fontSize: 28, fontWeight: '900', marginTop: 14, letterSpacing: -0.5, lineHeight: 34 },
   heroSub: { fontSize: 14, lineHeight: 20, marginTop: 6, paddingRight: 20 },
 
   searchCard: {
