@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, FlatList, Platform, StatusBar, Modal, RefreshControl } from 'react-native';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, FlatList, Platform, StatusBar, Modal, RefreshControl } from 'react-native';
 import { useTheme } from '../../lib/theme';
 import { useAuth } from '../../lib/auth';
 import { useRouter } from 'expo-router';
@@ -9,6 +9,8 @@ import api from '../../lib/api';
 import { reservations as reservationsApi, ReservationRecord, trajets as trajetsApi, MonTrajetConduit } from '../../lib/togotransit-api';
 import GlassCard from '../../components/ui/GlassCard';
 import FadeInStagger from '../../components/ui/FadeInStagger';
+import ScanResultSheet, { ScanResult } from '../../components/ScanResultSheet';
+import { extractNumeroBillet } from '../../lib/billet';
 
 export default function TicketsScreen() {
   const { user } = useAuth();
@@ -65,20 +67,34 @@ export default function TicketsScreen() {
   const [showHistory, setShowHistory] = useState(false);
   const [scanHistory, setScanHistory] = useState<any[]>([]);
 
+  // Résultat du dernier scan, affiché en grand par-dessus la caméra : la caméra reste ouverte pour le passager suivant.
+  const [scanResult, setScanResult] = useState<ScanResult | null>(null);
+  const dernierScan = useRef({ data: '', at: 0 });
+
+  const fermerResultat = () => {
+    // Le QR code est encore dans le cadre : on ne le relit pas avant quelques secondes.
+    dernierScan.current.at = Date.now();
+    setScanResult(null);
+  };
+
   const handleBarCodeScanned = async ({ data }: { type: string; data: string }) => {
-    if (isValidating) return;
+    if (isValidating || scanResult) return;
+    // La caméra relit le même QR code en boucle tant qu'il reste dans le cadre.
+    const maintenant = Date.now();
+    if (data === dernierScan.current.data && maintenant - dernierScan.current.at < 4000) return;
+    dernierScan.current = { data, at: maintenant };
+
+    // Billets récents : adresse de vérification ; anciens billets : QR JSON ou numéro seul.
+    const numero_billet = extractNumeroBillet(data);
+    if (!numero_billet) {
+      setScanResult({ etat: 'inconnu', titre: 'QR code non reconnu', message: "Ce code n'est pas un billet TogoTransit." });
+      return;
+    }
+
     setIsValidating(true);
     try {
-      let numero_billet = data;
-      try {
-        const parsed = JSON.parse(data);
-        if (parsed?.numero_billet) numero_billet = parsed.numero_billet;
-      } catch (_) {
-        // Le QR n'est pas du JSON structuré : on utilise la valeur brute comme numéro de billet.
-      }
-
       const response = await api.post('/billets/verifier', { numero_billet });
-      const { message, client, trajet, passagers } = response.data;
+      const { client, trajet, passagers, sieges } = response.data;
 
       setScanHistory((prev) => [
         {
@@ -92,22 +108,42 @@ export default function TicketsScreen() {
         ...prev,
       ]);
 
-      Alert.alert(
-        'Succès',
-        [
-          message,
-          client ? `Passager : ${client.nom}` : null,
-          trajet ? `Trajet : ${trajet.ville_depart} → ${trajet.ville_arrivee}` : null,
-        ]
-          .filter(Boolean)
-          .join('\n'),
-        [{ text: 'OK', onPress: () => setIsScanning(false) }]
-      );
+      setScanResult({
+        etat: 'valide',
+        titre: 'Embarquement autorisé',
+        message: 'Billet valide, désormais marqué comme utilisé.',
+        numero: numero_billet,
+        passagers,
+        sieges,
+        trajet,
+      });
     } catch (error: any) {
-      Alert.alert(
-        'Erreur de validation',
-        error.response?.data?.error || 'Une erreur est survenue lors de la validation du billet.'
-      );
+      const reponse = error.response?.data;
+      const info = reponse?.info;
+      const detail = { numero: numero_billet, passagers: info?.passagers, sieges: info?.sieges, trajet: info?.trajet };
+      switch (reponse?.code) {
+        case 'BILLET_DEJA_UTILISE':
+          setScanResult({ etat: 'utilise', titre: 'Billet déjà utilisé', message: "Ce billet a déjà été scanné : refusez l'embarquement.", ...detail });
+          break;
+        case 'BILLET_ANNULE':
+        case 'RESERVATION_ANNULEE':
+          setScanResult({ etat: 'annule', titre: 'Billet annulé', message: "Ce billet n'est plus valable : refusez l'embarquement.", ...detail });
+          break;
+        case 'BILLET_INCONNU':
+          setScanResult({ etat: 'inconnu', titre: 'Billet introuvable', message: "Ce numéro ne correspond à aucun billet TogoTransit." });
+          break;
+        case 'MAUVAISE_COMPAGNIE':
+        case 'MAUVAIS_TRAJET':
+          setScanResult({ etat: 'refuse', titre: 'Billet non concerné', message: reponse.error, numero: numero_billet });
+          break;
+        default:
+          setScanResult({
+            etat: 'erreur',
+            titre: 'Validation impossible',
+            message: reponse?.error || 'Vérifiez la connexion, puis scannez de nouveau.',
+            numero: numero_billet,
+          });
+      }
     } finally {
       setIsValidating(false);
     }
@@ -174,6 +210,7 @@ export default function TicketsScreen() {
               </View>
             </View>
           </CameraView>
+          <ScanResultSheet result={scanResult} onClose={fermerResultat} />
         </View>
       );
     }
