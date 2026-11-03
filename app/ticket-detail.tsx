@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../lib/theme';
 import { reservations, ReservationRecord } from '../lib/togotransit-api';
+import { formatHeureUtc } from '../lib/billet';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 import {
@@ -246,7 +247,7 @@ export default function TicketDetailScreen() {
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
                         <Clock size={11} color={colors.textSecondary} />
                         <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-                          {trajet.heure_depart || '—'}
+                          {formatHeureUtc(trajet.heure_depart || trajet.date_depart) || trajet.heure_depart || '—'}
                         </Text>
                       </View>
                     </View>
@@ -283,6 +284,13 @@ export default function TicketDetailScreen() {
                       </Text>
                     </View>
                   </View>
+                  {p.numero_siege ? (
+                    <View style={[styles.siegeBadge, { backgroundColor: colors.primaryContainer }]}>
+                      <Text style={[styles.siegeBadgeText, { color: colors.onPrimaryContainer }]}>
+                        Siège #{p.numero_siege}
+                      </Text>
+                    </View>
+                  ) : null}
                 </View>
               ))}
             </View>
@@ -485,6 +493,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   nomPassager: { fontSize: 14, fontWeight: '700' },
+  siegeBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 },
+  siegeBadgeText: { fontSize: 12, fontWeight: '800' },
 
   summaryRow: {
     flexDirection: 'row',

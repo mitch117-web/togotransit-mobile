@@ -325,6 +325,8 @@ export default function TicketsScreen() {
           renderItem={({ item, index }) => {
             const trajet = item.trajet;
             const billets = item.billets ?? [];
+            // Le siège attribué (au guichet) est la même information que sur le billet ; « Places » n'est que le repli.
+            const sieges = (item.passagers ?? []).map((p) => p.numero_siege).filter(Boolean) as string[];
             return (
               <FadeInStagger index={index}>
               <GlassCard style={styles.ticketCard}>
@@ -396,9 +398,11 @@ export default function TicketsScreen() {
                     <View style={styles.detailItem}>
                       <UserIcon size={16} color={colors.tabIconDefault} />
                       <View>
-                        <Text style={[styles.detailLabel, { color: colors.tabIconDefault }]}>Places</Text>
+                        <Text style={[styles.detailLabel, { color: colors.tabIconDefault }]}>
+                          {sieges.length ? (sieges.length > 1 ? 'Sièges' : 'Siège') : 'Places'}
+                        </Text>
                         <Text style={[styles.detailValue, { color: colors.primary, fontWeight: '800' }]}>
-                          {item.nombre_places}
+                          {sieges.length ? sieges.map((s) => `#${s}`).join(' ') : item.nombre_places}
                         </Text>
                       </View>
                     </View>
