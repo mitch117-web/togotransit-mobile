@@ -53,3 +53,7 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# outils locaux et fichiers de test (ne pas publier)
+.claude/
+qr_expo_go.png
